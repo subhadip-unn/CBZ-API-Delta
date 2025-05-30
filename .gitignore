@@ -1,0 +1,14 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore test reports
+test_report_*.html
+test_report_*.md
+
+# Ignore backup files
+*.bak
+
+# Ignore other temp files
+*.swp
+*.swo
