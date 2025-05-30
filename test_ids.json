@@ -1,0 +1,5 @@
+{
+  "_note": "IDs here will be substituted into placeholders like <SERIES_ID>, <MATCH_ID>, etc. in your cURL templates.",
+  "series_ids": [1116],
+  "match_ids": [118916]
+}

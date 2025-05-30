@@ -1,0 +1,13 @@
+curl 'https://api.cricbuzz.com/w/stats/v1/series/<SERIES_ID>/points-table' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-IN,en;q=0.9,id-ID;q=0.8,id;q=0.7,en-GB;q=0.6,en-US;q=0.5' \
+  -b 'pc=10; _cc_id=b17f8dd035ff71183bd52be320ec872a; _col_uuid=9014e25f-6bda-435a-a795-224304bad245-hvno; WZRK_G=6c1ed564c5fc4bb79654f2332b0d0c5b; _ga_CFDGEQP40F=GS2.1.s1748000463$o6$g1$t1748001612$j0$l0$h0; cb_config=%7B%7D; _gid=GA1.2.924669486.1748341316; dmpFPSTrack=1; cbzads=IN|not_set|HR|GURGAON; panoramaId_expiry=1749029838246; panoramaId=b1fb9ab0c02656f9d1d60a7c705316d539381d46076d9e07cc07ae2d0d52a920; panoramaIdType=panoIndiv; __gads=ID=b376b205d9e9f504:T=1745857601:RT=1748547398:S=ALNI_MZG0bSO7Q4Bg_wPBzcg0NbScu9ewQ; __gpi=UID=000010b47b9fca49:T=1745857601:RT=1748547398:S=ALNI_MZL_JrtTR6xSSrBcCxvhwwxJBNHEQ; __eoi=ID=e8841bdde1812810:T=1745857601:RT=1748547398:S=AA-AfjYh7bqnccj02EjauI6Z7DKL; cto_bundle=TxZuxV9GVjElMkZjemNSZ3l5ZEVWUDJicjFDRldWeGtURWtvTWViRSUyRlo5VUs2Njl4R2FuNGg0OSUyQnRqamJMSzRqd0VkV05maGtKb3ZYYno0M1lTenRxcWlqT1hSTk1lemtFMXVSTTNzTjJyMmlIVnJHUXltMzMwNU9lU1RxcExiSERleXpsWHYzekUySzRqNkV3OU1uS2NRYjZBejhMbHVUTzJ6cHBwWVc3Y1glMkI1R2g4ZG5UaDBwajB1M3FSbGZ2OGQ3bkN1WVAzJTJGV1ZaJTJGRUNTaUwlMkIlMkZPZTlBJTJCMFdRJTNEJTNE; _ga_83LXEV4P47=GS2.1.s1748547397$o20$g1$t1748547534$j60$l0$h0; _ga=GA1.1.56021255.1743495684; WZRK_S_R5K-RKZ-896Z=%7B%22p%22%3A10%2C%22s%22%3A1748546366%2C%22t%22%3A1748549269%7D; FCNEC=%5B%5B%22AKsRol8u519w1NQNWsiQ3DpfX_BzCcdfmKcAG3tK96kCmGUw6WuUpZgDdPi5DQjzxP6e0svjt7wxJ2Hi5Pk2MBOvfORvPk1TE9s0mDsKjrhpPtraj1Tk9SD76dIx7WB4ZOXdd4F9_gu4PKDtVAs18J0x0EFC2ZfZrg%3D%3D%22%5D%5D; _ga_4H06J8XXQH=GS2.1.s1748546366$o35$g1$t1748549517$j60$l0$h0' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.cricbuzz.com/cricket-series/<SERIES_ID>/indian-premier-league-2025/points-table' \
+  -H 'sec-ch-ua: "Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Linux"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'

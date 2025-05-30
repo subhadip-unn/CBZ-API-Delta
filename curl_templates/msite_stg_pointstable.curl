@@ -1,0 +1,16 @@
+curl 'http://api.cricbuzz.stg/m/stats/v2/series/<SERIES_ID>/points-table' \
+  -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+  -H 'accept-language: en-IN,en;q=0.9,id-ID;q=0.8,id;q=0.7,en-GB;q=0.6,en-US;q=0.5' \
+  -H 'cache-control: max-age=0' \
+  -b '_cc_id=b17f8dd035ff71183bd52be320ec872a; _col_uuid=9014e25f-6bda-435a-a795-224304bad245-hvno; WZRK_G=6c1ed564c5fc4bb79654f2332b0d0c5b; _ga_CFDGEQP40F=GS2.1.s1748000463$o6$g1$t1748001612$j0$l0$h0; cb_config=%7B%7D; _gid=GA1.2.924669486.1748341316; dmpFPSTrack=1; cbzads=IN|not_set|HR|GURGAON; panoramaId_expiry=1749029838246; panoramaId=b1fb9ab0c02656f9d1d60a7c705316d539381d46076d9e07cc07ae2d0d52a920; panoramaIdType=panoIndiv; cto_bundle=xgPvq19GVjElMkZjemNSZ3l5ZEVWUDJicjFDRmVtTDVMT3F3dXAlMkY4ZyUyRk5TSmxtRW8zUGQ5MmZBSkRXZXZDMklOczVOR1B0d1lDY3J2clozSW5oQWFucXJOOHZHYjFWeiUyQlBSRXFuM1RmanlrYUxOZllPMkNuemVIWlp5R21mWUlCOHNUcW9nbWhiUFIzRGd3dVJZSGw2aXElMkJ5R3JZY2xEJTJGYlclMkZlUDZrQ0t6SzVMRyUyRktKQjZOdWZTcFdJRVFpeGEzRnp4NWtteWtBY2RKSXhVRlBsQTRSaWtGNlFnUSUzRCUzRA; _ga=GA1.1.56021255.1743495684; _ga_4H06J8XXQH=GS2.1.s1748533034$o34$g1$t1748533045$j49$l0$h0; pageVisit=114; FCNEC=%5B%5B%22AKsRol82hSbhbla3SKw4Zzuh9wMYoqX7Og-QKyDaZ8IXpkHl9J1I7VZdkSdtXiT9j4pOzL_p1SPxlL6FfH3abisXwOJf9VUmVIZzVapT0GxaNRF_QkxctmKnrEowt_GhPn5HUJymm3xmVY-h9r57jadqV8IttxtrRQ%3D%3D%22%5D%5D; _ga_83LXEV4P47=GS2.1.s1748536161$o19$g1$t1748537876$j52$l0$h0; __gads=ID=b376b205d9e9f504:T=1745857601:RT=1748537878:S=ALNI_MZG0bSO7Q4Bg_wPBzcg0NbScu9ewQ; __gpi=UID=000010b47b9fca49:T=1745857601:RT=1748537878:S=ALNI_MZL_JrtTR6xSSrBcCxvhwwxJBNHEQ; __eoi=ID=e8841bdde1812810:T=1745857601:RT=1748537878:S=AA-AfjYh7bqnccj02EjauI6Z7DKL' \
+  -H 'priority: u=0, i' \
+  -H 'referer: http://m.cricbuzz.stg/' \
+  -H 'sec-ch-ua: "Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Linux"' \
+  -H 'sec-fetch-dest: document' \
+  -H 'sec-fetch-mode: navigate' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sec-fetch-user: ?1' \
+  -H 'upgrade-insecure-requests: 1' \
+  -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'

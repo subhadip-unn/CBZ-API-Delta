@@ -1,0 +1,11 @@
+curl \
+  -H "Host: apiserver.cricbuzz.com" \
+  -H "accept: application/json" \
+  -H "cb-loc: IN" \
+  -H "cb-tz: +0530" \
+  -H "accept-language: en-IN;q=1.0" \
+  -H "authentication: exp=1748593292~acl=/*~hmac=26b1a3beca8f38ad3d81eecb0b341ac7f3e9b343" \
+  -H "cb-appver: 15.8" \
+  -H "user-agent: CricbuzzMobile/15.8 (com.sports.iCric; build:198; iOS 17.7.1) Alamofire/4.9.1" \
+  --compressed \
+  "https://apiserver.cricbuzz.com/i/mcenter/v2/<MATCH_ID>/comm"
