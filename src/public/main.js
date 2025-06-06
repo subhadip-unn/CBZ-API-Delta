@@ -130,18 +130,29 @@ function renderJobSection(job, container) {
   container.insertAdjacentHTML("beforeend", summaryHTML);
 
   // Add headers block in job summary section
-  const firstRec = job.endpoints[0] || null;
-  if (firstRec) {
+  if (job.headersUsed) { // Check if job.headersUsed (template headers) exists
     const headersBlock = `
       <div style="background:#f1f1f1; padding:0.5rem; 
                   border:1px solid #ccc; border-radius:4px; margin-bottom:1rem;">
-        <strong>Headers Used (for all requests in this job):</strong>
+        <strong>Headers Used (template for this job):</strong>
         <pre style="font-size:0.85rem; color:#333;">
-${JSON.stringify(firstRec.headersUsedA, null, 2)}
+${JSON.stringify(job.headersUsed, null, 2)}
         </pre>
       </div>
     `;
     container.insertAdjacentHTML("beforeend", headersBlock);
+  } else {
+    // Fallback or message if job.headersUsed is not available for some reason
+    const noHeadersBlock = `
+      <div style="background:#f1f1f1; padding:0.5rem; 
+                  border:1px solid #ccc; border-radius:4px; margin-bottom:1rem;">
+        <strong>Headers Used (template for this job):</strong>
+        <pre style="font-size:0.85rem; color:#333;">
+Not available in this report version.
+        </pre>
+      </div>
+    `;
+    container.insertAdjacentHTML("beforeend", noHeadersBlock);
   }
 
   // 3) Search box + filter buttons
@@ -272,15 +283,46 @@ ${JSON.stringify(firstRec.headersUsedA, null, 2)}
       diffContainer.style.display = "none";
 
       rec.diffs.forEach((d) => {
-        // Use ONLY the correct formatter for the UMD bundle
-        const html = jsondiffpatch.formatters.html.format(d.rawDiff);
-
+        // Get the kind of change and display it in a human-readable format
+        let changeType = "Unknown";
+        switch(d.kind) {
+          case "E": changeType = "Edit (Value Changed)"; break;
+          case "N": changeType = "New (Value Added)"; break;
+          case "D": changeType = "Delete (Value Removed)"; break;
+          case "A": changeType = "Array (Item Changed)"; break;
+        }
+        
+        // Format before/after values nicely
+        const formatValue = (val) => {
+          if (val === undefined) return "<em>undefined</em>";
+          if (val === null) return "<em>null</em>";
+          if (typeof val === "object") return `<pre>${JSON.stringify(val, null, 2)}</pre>`;
+          if (typeof val === "string") return `"${val}"`;
+          return String(val);
+        };
+        
+        // Try to use the jsondiffpatch formatter for visualization if available
+        let diffHtml = "";
+        try {
+          diffHtml = jsondiffpatch.formatters.html.format(d.rawDiff);
+        } catch (err) {
+          console.warn("Failed to format diff with jsondiffpatch:", err);
+          // Fallback to simple display
+        }
+        
         const wrapper = document.createElement("div");
         wrapper.className = "single-diff";
         wrapper.innerHTML = `
           <div><strong>Path:</strong> ${d.path}</div>
+          <div><strong>Change Type:</strong> ${changeType}</div>
           <div><strong>Severity:</strong> ${d.severity}</div>
-          <div class="delta-view">${html}</div>
+          <div style="margin-top: 8px;">
+            <strong>Before:</strong> ${formatValue(d.lhs)}
+          </div>
+          <div style="margin-top: 4px;">
+            <strong>After:</strong> ${formatValue(d.rhs)}
+          </div>
+          ${diffHtml ? `<div class="delta-view" style="margin-top: 8px;">${diffHtml}</div>` : ''}
           <hr />
         `;
         diffContainer.appendChild(wrapper);

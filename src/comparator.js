@@ -229,6 +229,7 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
       idsUsed,
       geoUsed
     },
+    headersUsed: headersTempl, // Pass the template headers for the job
     endpoints: allRecords
   };
 }

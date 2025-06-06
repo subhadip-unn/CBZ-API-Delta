@@ -94,14 +94,9 @@ function classifyDiffs(d) {
       severity = "Warning";
     }
   }
-  return {
-    path: d.path ? d.path.join(".") : "",
-    lhs: d.lhs,
-    rhs: d.rhs,
-    kind: d.kind,
-    rawDiff: d,
-    severity
-  };
+  d.severity = severity; // Add severity to the original diff object
+  // d.stringPath = d.path ? d.path.join(".") : ""; // Optionally add for other uses, but keep d.path as array
+  return d; // Return the modified original diff object
 }
 
 module.exports = { buildUrl, retryFetch, filterDiffs, classifyDiffs };
