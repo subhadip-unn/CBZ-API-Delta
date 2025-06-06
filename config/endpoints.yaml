@@ -1,0 +1,365 @@
+# config/endpoints.yaml
+
+# iOS platform endpoints
+- key: "team-players"
+  platform: "i"
+  path: "teams/v1/{teamId}/players"
+  idCategory: "teamId"
+
+- key: "team-results"
+  platform: "i"
+  path: "teams/v1/{teamId}/results"
+  idCategory: "teamId"
+
+- key: "team-info"
+  platform: "i"
+  path: "teams/v1/{teamId}/info"
+  idCategory: "teamId"
+
+- key: "venue-info"
+  platform: "i"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches"
+  platform: "i"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+- key: "series-squads"
+  platform: "i"
+  path: "series/v1/{seriesId}/squads/{squadId}"
+  idCategory: null
+
+- key: "series-venues"
+  platform: "i"
+  path: "series/v1/{seriesId}/venues"
+  idCategory: "seriesId"
+
+- key: "series-squads-list"
+  platform: "i"
+  path: "series/v1/{seriesId}/squads"
+  idCategory: "seriesId"
+
+- key: "series-info"
+  platform: "i"
+  path: "series/v1/{seriesId}/info"
+  idCategory: "seriesId"
+
+- key: "series-archives"
+  platform: "i"
+  path: "series/v1/archives/{category}"
+  idCategory: "category"
+
+- key: "series-points-index"
+  platform: "i"
+  path: "series/v1/points/index"
+  idCategory: null
+
+- key: "series-season"
+  platform: "i"
+  path: "series/v1/{seriesId}/season"
+  idCategory: "seriesId"
+
+- key: "series-list-id"
+  platform: "i"
+  path: "series-list/seriesId/{seriesId}"
+  idCategory: "seriesId"
+
+- key: "series-list-type"
+  platform: "i"
+  path: "series-list/seriesType/{seriesType}"
+  idCategory: "seriesType"
+
+- key: "live-matches"
+  platform: "i"
+  path: "matches/v2/live"
+  idCategory: null
+
+- key: "recent-matches"
+  platform: "i"
+  path: "matches/v2/recent"
+  idCategory: null
+
+- key: "upcoming-matches"
+  platform: "i"
+  path: "matches/v2/upcoming"
+  idCategory: null
+
+- key: "current-match"
+  platform: "i"
+  path: "matches/v2/current"
+  idCategory: null
+
+# Android platform (duplicate same keys, path, but platform = "a")
+- key: "team-players"
+  platform: "a"
+  path: "teams/v1/{teamId}/players"
+  idCategory: "teamId"
+
+- key: "team-results"
+  platform: "a"
+  path: "teams/v1/{teamId}/results"
+  idCategory: "teamId"
+
+- key: "team-info"
+  platform: "a"
+  path: "teams/v1/{teamId}/info"
+  idCategory: "teamId"
+
+- key: "venue-info"
+  platform: "a"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches"
+  platform: "a"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+- key: "series-squads"
+  platform: "a"
+  path: "series/v1/{seriesId}/squads/{squadId}"
+  idCategory: null
+
+- key: "series-venues"
+  platform: "a"
+  path: "series/v1/{seriesId}/venues"
+  idCategory: "seriesId"
+
+- key: "series-squads-list"
+  platform: "a"
+  path: "series/v1/{seriesId}/squads"
+  idCategory: "seriesId"
+
+- key: "series-info"
+  platform: "a"
+  path: "series/v1/{seriesId}/info"
+  idCategory: "seriesId"
+
+- key: "series-archives"
+  platform: "a"
+  path: "series/v1/archives/{category}"
+  idCategory: "category"
+
+- key: "series-points-index"
+  platform: "a"
+  path: "series/v1/points/index"
+  idCategory: null
+
+- key: "series-season"
+  platform: "a"
+  path: "series/v1/{seriesId}/season"
+  idCategory: "seriesId"
+
+- key: "series-list-id"
+  platform: "a"
+  path: "series-list/seriesId/{seriesId}"
+  idCategory: "seriesId"
+
+- key: "series-list-type"
+  platform: "a"
+  path: "series-list/seriesType/{seriesType}"
+  idCategory: "seriesType"
+
+- key: "live-matches"
+  platform: "a"
+  path: "matches/v2/live"
+  idCategory: null
+
+- key: "recent-matches"
+  platform: "a"
+  path: "matches/v2/recent"
+  idCategory: null
+
+- key: "upcoming-matches"
+  platform: "a"
+  path: "matches/v2/upcoming"
+  idCategory: null
+
+- key: "current-match"
+  platform: "a"
+  path: "matches/v2/current"
+  idCategory: null
+
+# Mobile-Web platform
+- key: "team-players"
+  platform: "m"
+  path: "teams/v1/{teamId}/players"
+  idCategory: "teamId"
+
+- key: "team-results"
+  platform: "m"
+  path: "teams/v1/{teamId}/results"
+  idCategory: "teamId"
+
+- key: "team-info"
+  platform: "m"
+  path: "teams/v1/{teamId}/info"
+  idCategory: "teamId"
+
+- key: "venue-info"
+  platform: "m"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches"
+  platform: "m"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+- key: "series-squads"
+  platform: "m"
+  path: "series/v1/{seriesId}/squads/{squadId}"
+  idCategory: null
+
+- key: "series-venues"
+  platform: "m"
+  path: "series/v1/{seriesId}/venues"
+  idCategory: "seriesId"
+
+- key: "series-squads-list"
+  platform: "m"
+  path: "series/v1/{seriesId}/squads"
+  idCategory: "seriesId"
+
+- key: "series-info"
+  platform: "m"
+  path: "series/v1/{seriesId}/info"
+  idCategory: "seriesId"
+
+- key: "series-archives"
+  platform: "m"
+  path: "series/v1/archives/{category}"
+  idCategory: "category"
+
+- key: "series-points-index"
+  platform: "m"
+  path: "series/v1/points/index"
+  idCategory: null
+
+- key: "series-season"
+  platform: "m"
+  path: "series/v1/{seriesId}/season"
+  idCategory: "seriesId"
+
+- key: "series-list-id"
+  platform: "m"
+  path: "series-list/seriesId/{seriesId}"
+  idCategory: "seriesId"
+
+- key: "series-list-type"
+  platform: "m"
+  path: "series-list/seriesType/{seriesType}"
+  idCategory: "seriesType"
+
+- key: "live-matches"
+  platform: "m"
+  path: "matches/v2/live"
+  idCategory: null
+
+- key: "recent-matches"
+  platform: "m"
+  path: "matches/v2/recent"
+  idCategory: null
+
+- key: "upcoming-matches"
+  platform: "m"
+  path: "matches/v2/upcoming"
+  idCategory: null
+
+- key: "current-match"
+  platform: "m"
+  path: "matches/v2/current"
+  idCategory: null
+
+# Desktop-Web platform
+- key: "team-players"
+  platform: "w"
+  path: "teams/v1/{teamId}/players"
+  idCategory: "teamId"
+
+- key: "team-results"
+  platform: "w"
+  path: "teams/v1/{teamId}/results"
+  idCategory: "teamId"
+
+- key: "team-info"
+  platform: "w"
+  path: "teams/v1/{teamId}/info"
+  idCategory: "teamId"
+
+- key: "venue-info"
+  platform: "w"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches"
+  platform: "w"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+- key: "series-squads"
+  platform: "w"
+  path: "series/v1/{seriesId}/squads/{squadId}"
+  idCategory: null
+
+- key: "series-venues"
+  platform: "w"
+  path: "series/v1/{seriesId}/venues"
+  idCategory: "seriesId"
+
+- key: "series-squads-list"
+  platform: "w"
+  path: "series/v1/{seriesId}/squads"
+  idCategory: "seriesId"
+
+- key: "series-info"
+  platform: "w"
+  path: "series/v1/{seriesId}/info"
+  idCategory: "seriesId"
+
+- key: "series-archives"
+  platform: "w"
+  path: "series/v1/archives/{category}"
+  idCategory: "category"
+
+- key: "series-points-index"
+  platform: "w"
+  path: "series/v1/points/index"
+  idCategory: null
+
+- key: "series-season"
+  platform: "w"
+  path: "series/v1/{seriesId}/season"
+  idCategory: "seriesId"
+
+- key: "series-list-id"
+  platform: "w"
+  path: "series-list/seriesId/{seriesId}"
+  idCategory: "seriesId"
+
+- key: "series-list-type"
+  platform: "w"
+  path: "series-list/seriesType/{seriesType}"
+  idCategory: "seriesType"
+
+- key: "live-matches"
+  platform: "w"
+  path: "matches/v2/live"
+  idCategory: null
+
+- key: "recent-matches"
+  platform: "w"
+  path: "matches/v2/recent"
+  idCategory: null
+
+- key: "upcoming-matches"
+  platform: "w"
+  path: "matches/v2/upcoming"
+  idCategory: null
+
+- key: "current-match"
+  platform: "w"
+  path: "matches/v2/current"
+  idCategory: null

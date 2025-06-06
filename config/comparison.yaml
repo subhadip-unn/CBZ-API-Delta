@@ -1,0 +1,73 @@
+# config/comparison.yaml
+
+jobs:
+  # Quick test job - only first venue ID, first geo location
+  - name: "Quick Test: iOS Prod vs Stg"  
+    platform: "i"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "https://api.cricbuzz.stg"
+    quickMode: true
+    endpointsToRun:
+      - "venue-info"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 1
+      delayMs: 1000
+
+  - name: "iOS: Prod vs Stg (venue endpoints)"
+    platform: "i"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "https://api.cricbuzz.stg"
+    endpointsToRun:
+      - "venue-info"
+      - "venue-matches"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 2
+      delayMs: 2000
+
+  - name: "Android: Prod vs Stg (venue endpoints)"
+    platform: "a"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "https://api.cricbuzz.stg"
+    endpointsToRun:
+      - "venue-info"
+      - "venue-matches"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 2
+      delayMs: 2000
+
+  - name: "Mobile-Web: Prod vs Stg (venue endpoints)"
+    platform: "m"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "https://api.cricbuzz.stg"
+    endpointsToRun:
+      - "venue-info"
+      - "venue-matches"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 2
+      delayMs: 2000
+
+  - name: "Desktop-Web: Prod vs Stg (venue endpoints)"
+    platform: "w"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "https://api.cricbuzz.stg"
+    endpointsToRun:
+      - "venue-info"
+      - "venue-matches"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 2
+      delayMs: 2000

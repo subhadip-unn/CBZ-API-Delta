@@ -1,0 +1,23 @@
+{
+  "i": {
+    "accept": "application/json",
+    "cb-loc": ["IN", "US", "CA", "AE"],
+    "cb-tz": "+0530"
+  },
+  "a": {
+    "accept": "application/json",
+    "cb-loc": ["IN", "US", "CA", "AE"],
+    "cb-tz": "+0530"
+  },
+  "m": {
+    "accept": "application/json",
+    "content-type": "application/json",
+    "cb-loc": ["IN", "US", "CA", "AE"],
+    "cb-tz": "+0530"
+  },
+  "w": {
+    "accept": "application/json, text/plain, */*",
+    "cb-loc": ["IN", "US", "CA", "AE"],
+    "cb-tz": "+0530"
+  }
+}

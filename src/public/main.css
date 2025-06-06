@@ -1,0 +1,186 @@
+/* src/public/main.css */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 1rem;
+  background: #fafafa;
+}
+h1, h2 {
+  color: #333;
+}
+#job-container {
+  margin-top: 1rem;
+}
+/* Summary & Metadata */
+#summary {
+  background: #fff;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+#jobTabs {
+  margin-bottom: 1rem;
+}
+#jobTabs button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#jobTabs button.active {
+  background: #1976d2;
+  color: white;
+}
+.search-filter-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+#endpointSearch {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#endpointSearch:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 4px rgba(25,118,210,0.3);
+}
+.filter-btn {
+  background-color: #e0e0e0;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.filter-btn:hover {
+  background-color: #d5d5d5;
+}
+.filter-active {
+  background-color: #1976d2 !important;
+  color: white;
+}
+/* Legend */
+#summary .legend {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+/* Endpoint Cards */
+.endpoint-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  transition: transform 0.1s ease;
+}
+.endpoint-card:hover {
+  transform: translateY(-2px);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.card-header.ok {
+  background-color: #e8f5e9;
+  color: #256029;
+}
+.card-header.error {
+  background-color: #ffebee;
+  color: #b71c1c;
+}
+.card-header.warning {
+  background-color: #fff8e1;
+  color: #8a6d3b;
+}
+.error-msg {
+  color: #b71c1c;
+  margin: 0.5rem 0;
+}
+.info-line {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.3rem;
+}
+/* Buttons */
+.show-json-btn, .toggle-btn {
+  margin-top: 0.5rem;
+  cursor: pointer;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+}
+.show-json-btn:hover, .toggle-btn:hover {
+  background-color: #1565c0;
+}
+/* Collapsible Sections */
+.diff-content {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 400px;
+}
+.single-diff {
+  margin-bottom: 1rem;
+}
+.delta-view {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 0.5rem;
+  margin-top: 0.3rem;
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* Hidden container for both panes */
+.json-side-by-side {
+  display: none;          /* start hidden */
+  flex-direction: row;    /* arrange children horizontally */
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* When "expanded" is applied, show flex */
+.json-side-by-side.expanded {
+  display: flex;
+}
+
+/* Each pane: scrollable, monospace */
+.json-pane {
+  flex: 1;
+  background: #fefefe;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  overflow: auto;
+  max-height: 300px;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.json-view {
+  background: #fefefe;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
