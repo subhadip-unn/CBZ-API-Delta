@@ -24,23 +24,113 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // Add basic styles to document
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        background-color: #f9f9f9;
+      }
+      h1 {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: white;
+        margin: 0;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      #jobTabs {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-wrap: wrap;
+        padding: 10px;
+        z-index: 100;
+        border-bottom: 1px solid #ddd;
+      }
+      #jobTabs button {
+        background: #f0f0f0;
+        border: none;
+        padding: 8px 15px;
+        margin-right: 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      #jobTabs button.active {
+        background: #3498db;
+        color: white;
+      }
+      #jobTabs button:hover:not(.active) {
+        background: #e0e0e0;
+      }
+      #job-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 15px;
+      }
+      .card {
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .card-header {
+        padding: 10px 15px;
+        background-color: #f6f6f6;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card-header.success {
+        background-color: #e7f5ea;
+      }
+      .card-header.warning {
+        background-color: #fff8e6;
+      }
+      .card-header.error {
+        background-color: #fdedee;
+      }
+      .diff-item {
+        border-left: 3px solid #ddd;
+        margin-bottom: 8px;
+        padding-left: 10px;
+      }
+      .diff-item.high {
+        border-left-color: #e74c3c;
+      }
+      .diff-item.medium {
+        border-left-color: #f39c12;
+      }
+      .diff-item.low {
+        border-left-color: #3498db;
+      }
+    `;
+    document.head.appendChild(styleEl);
+
     // 1) Fetch all jobs
     const resp = await fetch(`/diff_data.json?folder=${folder}`);
     const allJobs = await resp.json(); // array of jobResult
     console.log('Jobs data loaded:', allJobs.length, 'jobs found');
 
-  // 2) Build tab bar
-  const tabsDiv = document.createElement("div");
-  tabsDiv.id = "jobTabs";
-  allJobs.forEach((job, idx) => {
-    const btn = document.createElement("button");
-    btn.textContent = job.jobName;
-    btn.dataset.idx = idx;
-    if (idx === 0) btn.classList.add("active");
-    btn.addEventListener("click", () => showJob(idx));
-    tabsDiv.appendChild(btn);
-  });
-  document.getElementById("summary").insertAdjacentElement("beforebegin", tabsDiv);
+    // 2) Build tab bar
+    const tabsDiv = document.createElement("div");
+    tabsDiv.id = "jobTabs";
+    allJobs.forEach((job, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = job.jobName;
+      btn.dataset.idx = idx;
+      if (idx === 0) btn.classList.add("active");
+      btn.addEventListener("click", () => showJob(idx));
+      tabsDiv.appendChild(btn);
+    });
+    document.getElementById("summary").insertAdjacentElement("beforebegin", tabsDiv);
 
   // 3) Create container for job sections
   const jobContainer = document.getElementById("job-container");
@@ -85,11 +175,14 @@ function renderJobSection(job, container) {
   // Clear container
   container.innerHTML = "";
 
-  // 1) Schema Notice
+  // 1) Schema Notice - improved styling with icon
   const schemaNotice = `
-    <div style="background:#fff3cd; padding:0.75rem; border:1px solid #ffeeba; border-radius:4px; margin-bottom:1rem;">
-      <strong>Note:</strong> This report does <em>not</em> perform JSON‐schema validation. 
-      It only compares raw structures. To add schema‐based checks, integrate a JSON Schema validator.
+    <div class="schema-notice" style="background:#fff9e6; padding:12px; border-left:4px solid #f1c40f; border-radius:4px; margin-bottom:1rem; display:flex; align-items:center;">
+      <div style="margin-right:10px; font-size:18px; color:#f1c40f;">⚠️</div>
+      <div>
+        <strong>Note:</strong> This report does <em>not</em> perform JSON‐schema validation. 
+        It only compares raw structures. To add schema‐based checks, integrate a JSON Schema validator.
+      </div>
     </div>
   `;
   container.insertAdjacentHTML("beforeend", schemaNotice);
@@ -99,61 +192,151 @@ function renderJobSection(job, container) {
   const s = job.summary;
   const meta = job.meta;
   const qa = job.testEngineer;
-
-  const summaryHTML = `
-    <div>
-      <div><strong>Test Engineer:</strong> ${qa}</div>
-      <div><strong>Report Generated On:</strong> ${ts}</div>
-      <div style="margin-top:0.5rem; font-size:0.9rem; color:#555;">
-        <div><strong>Endpoints Tested:</strong> ${meta.endpointsRun.join(", ")}</div>
-        <div><strong>IDs Used:</strong> ${meta.idsUsed.join(", ")}</div>
-        <div><strong>Geo Locations:</strong> ${meta.geoUsed.join(", ")}</div>
-      </div>
-      <div style="margin-top:0.75rem;">
-        <h2>Job: ${job.jobName}</h2>
-        <ul style="font-size:0.9rem; color:#333;">
-          <li>Total comparisons: ${s.totalComparisons}</li>
-          <li>Successful: ${s.successful}</li>
-          <li>Failures: ${s.failures}</li>
-          <li>Endpoints with diffs: ${s.endpointsWithDiffs}</li>
-        </ul>
-      </div>
-      <div class="legend">
-        <span>Legend:</span>
-        <span style="margin-left:1rem; color:green;">✅ OK</span>
-        <span style="margin-left:1rem; color:orange;">⚠️ Warning</span>
-        <span style="margin-left:1rem; color:red;">❌ Error/Failure</span>
+  
+  // Enhanced summary section with modern card layout
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'summary-card';
+  summaryCard.style.cssText = 'background:#fff; border-radius:8px; padding:15px; margin-bottom:20px; box-shadow:0 2px 5px rgba(0,0,0,0.06);';
+  
+  // Add job title with environment badges
+  const titleSection = document.createElement('div');
+  titleSection.innerHTML = `
+    <div style="display:flex; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:15px;">
+      <h2 style="margin:0; flex:1; font-size:22px;">
+        ${job.jobName}
+      </h2>
+      <div>
+        <span style="background:#3498db; color:white; padding:4px 8px; border-radius:4px; margin-right:5px; font-size:12px;">PROD</span>
+        <span style="background:#2ecc71; color:white; padding:4px 8px; border-radius:4px; font-size:12px;">STAGING</span>
       </div>
     </div>
-    <hr />
   `;
-  container.insertAdjacentHTML("beforeend", summaryHTML);
+  summaryCard.appendChild(titleSection);
 
-  // Add headers block in job summary section
-  if (job.headersUsed) { // Check if job.headersUsed (template headers) exists
-    const headersBlock = `
-      <div style="background:#f1f1f1; padding:0.5rem; 
-                  border:1px solid #ccc; border-radius:4px; margin-bottom:1rem;">
-        <strong>Headers Used (template for this job):</strong>
-        <pre style="font-size:0.85rem; color:#333;">
+  // Test metadata in a clean two-column layout
+  const metadataSection = document.createElement('div');
+  metadataSection.style.cssText = 'display:flex; flex-wrap:wrap; margin-bottom:15px;';
+  
+  // Left column - test details
+  const leftCol = document.createElement('div');
+  leftCol.style.cssText = 'flex:1; min-width:300px; padding-right:15px;';
+  leftCol.innerHTML = `
+    <div style="margin-bottom:15px;">
+      <div style="font-size:16px; font-weight:600; color:#444; margin-bottom:5px; border-bottom:1px dashed #eee; padding-bottom:3px;">
+        Test Information
+      </div>
+      <div style="display:grid; grid-template-columns:140px 1fr; row-gap:5px; font-size:14px;">
+        <div style="color:#666;">Test Engineer:</div>
+        <div style="font-weight:500;">${qa}</div>
+        
+        <div style="color:#666;">Generated On:</div>
+        <div style="font-weight:500;">${ts}</div>
+        
+        <div style="color:#666;">Endpoints Tested:</div>
+        <div style="font-weight:500;">${meta.endpointsRun.join(", ")}</div>
+        
+        <div style="color:#666;">IDs Used:</div>
+        <div style="font-weight:500;">${meta.idsUsed.join(", ")}</div>
+        
+        <div style="color:#666;">Geo Locations:</div>
+        <div style="font-weight:500;">${meta.geoUsed.join(", ")}</div>
+      </div>
+    </div>
+  `;
+  metadataSection.appendChild(leftCol);
+  
+  // Right column - test results
+  const rightCol = document.createElement('div');
+  rightCol.style.cssText = 'flex:1; min-width:300px;';
+  rightCol.innerHTML = `
+    <div>
+      <div style="font-size:16px; font-weight:600; color:#444; margin-bottom:5px; border-bottom:1px dashed #eee; padding-bottom:3px;">
+        Test Results
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+        <div style="background:#f8f9fa; padding:10px; border-radius:6px; text-align:center;">
+          <div style="font-size:24px; font-weight:600;">${s.totalComparisons}</div>
+          <div style="font-size:12px; color:#666; margin-top:5px;">Total Tests</div>
+        </div>
+        <div style="background:#e7f5ea; padding:10px; border-radius:6px; text-align:center;">
+          <div style="font-size:24px; font-weight:600; color:#27ae60;">${s.successful}</div>
+          <div style="font-size:12px; color:#2ecc71; margin-top:5px;">Successful</div>
+        </div>
+        <div style="background:#fdedee; padding:10px; border-radius:6px; text-align:center;">
+          <div style="font-size:24px; font-weight:600; color:#e74c3c;">${s.failures}</div>
+          <div style="font-size:12px; color:#c0392b; margin-top:5px;">Failures</div>
+        </div>
+        <div style="background:#fff8e6; padding:10px; border-radius:6px; text-align:center;">
+          <div style="font-size:24px; font-weight:600; color:#f39c12;">${s.endpointsWithDiffs}</div>
+          <div style="font-size:12px; color:#d35400; margin-top:5px;">With Diffs</div>
+        </div>
+      </div>
+      
+      <div class="legend" style="margin-top:10px; display:flex; font-size:13px; gap:10px;">
+        <div style="display:flex; align-items:center;">
+          <span style="width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; background:#e7f5ea; border-radius:3px; color:#27ae60; font-size:11px; margin-right:3px;">✅</span>
+          <span>OK</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+          <span style="width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; background:#fff8e6; border-radius:3px; color:#f39c12; font-size:11px; margin-right:3px;">⚠️</span>
+          <span>Warning</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+          <span style="width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; background:#fdedee; border-radius:3px; color:#e74c3c; font-size:11px; margin-right:3px;">❌</span>
+          <span>Error</span>
+        </div>
+      </div>
+    </div>
+  `;
+  metadataSection.appendChild(rightCol);
+  summaryCard.appendChild(metadataSection);
+  
+  // Headers section with collapsible behavior
+  let headersSection;
+  
+  if (job.headersUsed) {
+    headersSection = document.createElement('div');
+    headersSection.className = 'headers-section';
+    headersSection.style.cssText = 'margin-top:15px; border-top:1px solid #eee; padding-top:15px;';
+    
+    const headersTitle = document.createElement('div');
+    headersTitle.style.cssText = 'font-size:16px; font-weight:600; color:#444; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;';
+    headersTitle.innerHTML = `
+      <div>Headers Used (template for this job)</div>
+      <div class="toggle-btn" style="font-size:22px; color:#999; transform:rotate(0deg); transition:transform 0.3s;">▾</div>
+    `;
+    
+    const headersContent = document.createElement('div');
+    headersContent.className = 'headers-content';
+    headersContent.style.cssText = 'height:120px; overflow:hidden; transition:height 0.3s ease;';
+    headersContent.innerHTML = `
+      <pre style="font-size:0.85rem; color:#333; background:#f9f9f9; padding:0.75rem; border-radius:6px; margin-top:0; max-height:none; overflow-y:auto;">
 ${JSON.stringify(job.headersUsed, null, 2)}
-        </pre>
-      </div>
+      </pre>
     `;
-    container.insertAdjacentHTML("beforeend", headersBlock);
+    
+    headersTitle.addEventListener('click', () => {
+      const isCollapsed = headersContent.style.height === '120px';
+      headersContent.style.height = isCollapsed ? '250px' : '120px';
+      headersTitle.querySelector('.toggle-btn').style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+    
+    headersSection.appendChild(headersTitle);
+    headersSection.appendChild(headersContent);
+    summaryCard.appendChild(headersSection);
   } else {
-    // Fallback or message if job.headersUsed is not available for some reason
-    const noHeadersBlock = `
-      <div style="background:#f1f1f1; padding:0.5rem; 
-                  border:1px solid #ccc; border-radius:4px; margin-bottom:1rem;">
-        <strong>Headers Used (template for this job):</strong>
-        <pre style="font-size:0.85rem; color:#333;">
-Not available in this report version.
-        </pre>
-      </div>
-    `;
-    container.insertAdjacentHTML("beforeend", noHeadersBlock);
+    headersSection = document.createElement('div');
+    headersSection.style.cssText = 'margin-top:15px; font-size:14px; color:#666; font-style:italic;';
+    headersSection.textContent = 'Headers information not available in this report version';
+    summaryCard.appendChild(headersSection);
   }
+  
+  container.appendChild(summaryCard);
+  
+  // Add horizontal rule after summary
+  const hr = document.createElement('hr');
+  hr.style.cssText = 'border:0; height:1px; background-color:#eee; margin:20px 0;';
+  container.appendChild(hr);
 
   // 3) Search box + filter buttons
   const searchFilterHTML = `
@@ -214,24 +397,42 @@ Not available in this report version.
       card.insertAdjacentHTML("beforeend", errHTML);
     }
 
-    // Timing & Geo info
+    // Enhanced timing & geo info with better labels and visual separation
+    const fasterResp = rec.responseTimeA < rec.responseTimeB ? 'A' : 'B';
+    const timeA = new Date(rec.timestampA).toLocaleTimeString();
+    const timeB = new Date(rec.timestampB).toLocaleTimeString();
+    
     const timingHTML = `
-      <div class="info-line">
-        <strong>Geo:</strong> ${rec.cbLoc} |
-        <strong>A took:</strong> ${rec.responseTimeA} ms (at ${new Date(rec.timestampA).toLocaleTimeString()}) |
-        <strong>B took:</strong> ${rec.responseTimeB} ms (at ${new Date(rec.timestampB).toLocaleTimeString()})
+      <div class="request-details" style="background:#f9f9f9; border:1px solid #eee; border-radius:4px; padding:0.5rem; margin-top:0.5rem;">
+        <div style="margin-bottom:0.3rem;">
+          <strong style="color:#444;">Request Details:</strong>
+          <span class="badge" style="background:#6c757d; color:white; font-size:0.75rem; padding:0.1rem 0.3rem; border-radius:3px; margin-left:0.5rem;">Geo: ${rec.cbLoc}</span>
+        </div>
+        <div class="timing-info" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div style="flex:1; min-width:250px;">
+            <div style="${fasterResp === 'A' ? 'color:green;font-weight:bold;' : ''}">
+              <span style="display:inline-block; width:120px;">Prod Response Time:</span> ${rec.responseTimeA} ms
+              <span style="color:#777; font-size:0.85rem;">(at ${timeA})</span>
+              ${fasterResp === 'A' ? '<span style="color:green; margin-left:0.3rem;">🚀 Faster</span>' : ''}
+            </div>
+            <div style="margin-top:0.2rem; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis;">
+              <span style="color:#555;">URL A (Prod):</span> ${rec.urlA}
+            </div>
+          </div>
+          <div style="flex:1; min-width:250px;">
+            <div style="${fasterResp === 'B' ? 'color:green;font-weight:bold;' : ''}">
+              <span style="display:inline-block; width:120px;">Staging Response Time:</span> ${rec.responseTimeB} ms
+              <span style="color:#777; font-size:0.85rem;">(at ${timeB})</span>
+              ${fasterResp === 'B' ? '<span style="color:green; margin-left:0.3rem;">🚀 Faster</span>' : ''}
+            </div>
+            <div style="margin-top:0.2rem; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis;">
+              <span style="color:#555;">URL B (Staging):</span> ${rec.urlB}
+            </div>
+          </div>
+        </div>
       </div>
     `;
     card.insertAdjacentHTML("beforeend", timingHTML);
-
-    // URLs
-    const urlHTML = `
-      <div class="info-line" style="word-break:break-word; margin-top:0.3rem;">
-        <strong>URL A:</strong> ${rec.urlA}<br/>
-        <strong>URL B:</strong> ${rec.urlB}
-      </div>
-    `;
-    card.insertAdjacentHTML("beforeend", urlHTML);
 
     // Headers are now displayed in the job summary section, so we don't need individual header buttons
 
