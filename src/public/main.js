@@ -373,20 +373,27 @@ ${JSON.stringify(job.headersUsed, null, 2)}
     if (overallSeverity === "error" || overallSeverity === "failure") icon = "❌";
     else if (overallSeverity === "warning") icon = "⚠️";
 
-    // Header
-    const headerClass = overallSeverity === "ok"
-      ? "card-header ok"
-      : overallSeverity === "warning"
-      ? "card-header warning"
-      : "card-header error";
+    // Status badge color
+    function statusBadge(status) {
+      if (status >= 500) return `<span style='background:#e74c3c;color:white;padding:2px 7px;border-radius:4px;font-size:12px;'>${status}</span>`;
+      if (status >= 400) return `<span style='background:#f39c12;color:white;padding:2px 7px;border-radius:4px;font-size:12px;'>${status}</span>`;
+      if (status >= 200 && status < 300) return `<span style='background:#27ae60;color:white;padding:2px 7px;border-radius:4px;font-size:12px;'>${status}</span>`;
+      return `<span style='background:#bbb;color:white;padding:2px 7px;border-radius:4px;font-size:12px;'>${status}</span>`;
+    }
+    // Geo badge
+    function geoBadge(geo) {
+      return `<span style='background:#2980b9;color:white;padding:2px 7px;border-radius:4px;font-size:12px;'>${geo}</span>`;
+    }
 
+    // Header: visually distinct with colored top bar
     const headerHTML = `
-      <div class="${headerClass}">
-        <span>${icon}</span>
-        <span><strong>${rec.key}</strong></span>
-        <span>| Params: ${JSON.stringify(rec.params)}</span>
-        <span>| Status A: ${rec.statusA}</span>
-        <span>| Status B: ${rec.statusB}</span>
+      <div style="border-radius:6px 6px 0 0; border-top:5px solid ${overallSeverity==='error'||overallSeverity==='failure'?'#e74c3c':overallSeverity==='warning'?'#f39c12':'#27ae60'}; background:#fff; display:flex; align-items:center; gap:10px; padding:10px 18px; font-size:1rem;">
+        <span style="font-size:1.5rem;">${icon}</span>
+        <span style="font-weight:600; font-size:1.1rem;">${rec.key}</span>
+        <span style="margin-left:10px; color:#888;">Params:</span> <span style="font-family:monospace;">${JSON.stringify(rec.params)}</span>
+        <span style="margin-left:10px;">${geoBadge(rec.cbLoc)}</span>
+        <span style="margin-left:auto;">Prod: ${statusBadge(rec.statusA)}</span>
+        <span>Stg: ${statusBadge(rec.statusB)}</span>
       </div>
     `;
     card.insertAdjacentHTML("beforeend", headerHTML);
@@ -397,42 +404,68 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       card.insertAdjacentHTML("beforeend", errHTML);
     }
 
-    // Enhanced timing & geo info with better labels and visual separation
-    const fasterResp = rec.responseTimeA < rec.responseTimeB ? 'A' : 'B';
+    // Enhanced request details with grid, badges, and clear labels
+    const fasterResp = rec.responseTimeA < rec.responseTimeB ? 'A' : (rec.responseTimeA > rec.responseTimeB ? 'B' : null);
     const timeA = new Date(rec.timestampA).toLocaleTimeString();
     const timeB = new Date(rec.timestampB).toLocaleTimeString();
-    
-    const timingHTML = `
-      <div class="request-details" style="background:#f9f9f9; border:1px solid #eee; border-radius:4px; padding:0.5rem; margin-top:0.5rem;">
-        <div style="margin-bottom:0.3rem;">
-          <strong style="color:#444;">Request Details:</strong>
-          <span class="badge" style="background:#6c757d; color:white; font-size:0.75rem; padding:0.1rem 0.3rem; border-radius:3px; margin-left:0.5rem;">Geo: ${rec.cbLoc}</span>
+
+    const requestDetailsHTML = `
+      <div style="background:#f8fafd; border:1px solid #dde6f1; border-radius:0 0 8px 8px; margin-bottom:10px; padding:14px 18px 10px 18px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:center;">
+          <div>
+            <div style="font-size:13px; color:#888; margin-bottom:5px;">Prod (A)</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:15px; color:#3498db; font-weight:bold;">${rec.responseTimeA} ms</span>
+              <span style="color:#888; font-size:12px;">at ${timeA}</span>
+              ${fasterResp === 'A' ? '<span style="background:#27ae60;color:white;padding:2px 7px;border-radius:4px;font-size:12px; margin-left:5px;">🚀 Faster</span>' : ''}
+            </div>
+            <div style="font-size:12px; margin-top:3px; color:#666;">
+              <span style="font-weight:bold;">URL:</span> <span style="word-break:break-all;">${rec.urlA}</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px; color:#888; margin-bottom:5px;">Staging (B)</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:15px; color:#2ecc71; font-weight:bold;">${rec.responseTimeB} ms</span>
+              <span style="color:#888; font-size:12px;">at ${timeB}</span>
+              ${fasterResp === 'B' ? '<span style="background:#27ae60;color:white;padding:2px 7px;border-radius:4px;font-size:12px; margin-left:5px;">🚀 Faster</span>' : ''}
+            </div>
+            <div style="font-size:12px; margin-top:3px; color:#666;">
+              <span style="font-weight:bold;">URL:</span> <span style="word-break:break-all;">${rec.urlB}</span>
+            </div>
+          </div>
         </div>
-        <div class="timing-info" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-          <div style="flex:1; min-width:250px;">
-            <div style="${fasterResp === 'A' ? 'color:green;font-weight:bold;' : ''}">
-              <span style="display:inline-block; width:120px;">Prod Response Time:</span> ${rec.responseTimeA} ms
-              <span style="color:#777; font-size:0.85rem;">(at ${timeA})</span>
-              ${fasterResp === 'A' ? '<span style="color:green; margin-left:0.3rem;">🚀 Faster</span>' : ''}
-            </div>
-            <div style="margin-top:0.2rem; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis;">
-              <span style="color:#555;">URL A (Prod):</span> ${rec.urlA}
-            </div>
-          </div>
-          <div style="flex:1; min-width:250px;">
-            <div style="${fasterResp === 'B' ? 'color:green;font-weight:bold;' : ''}">
-              <span style="display:inline-block; width:120px;">Staging Response Time:</span> ${rec.responseTimeB} ms
-              <span style="color:#777; font-size:0.85rem;">(at ${timeB})</span>
-              ${fasterResp === 'B' ? '<span style="color:green; margin-left:0.3rem;">🚀 Faster</span>' : ''}
-            </div>
-            <div style="margin-top:0.2rem; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis;">
-              <span style="color:#555;">URL B (Staging):</span> ${rec.urlB}
-            </div>
-          </div>
+        <div style="margin-top:8px; font-size:12px; color:#888;">
+          <span style="background:#2980b9;color:white;padding:2px 7px;border-radius:4px;font-size:12px;">Geo: ${rec.cbLoc}</span>
         </div>
       </div>
     `;
-    card.insertAdjacentHTML("beforeend", timingHTML);
+    card.insertAdjacentHTML("beforeend", requestDetailsHTML);
+
+    // --- Human-readable diff summary ---
+    if (rec.diffs && rec.diffs.length > 0) {
+      const summaryList = document.createElement('ul');
+      summaryList.style.cssText = 'list-style:disc inside; margin:10px 0 0 0; padding:0 0 0 28px; font-size:14px; color:#222;';
+      rec.diffs.forEach(diff => {
+        let msg = '';
+        let sevColor = diff.severity === 'Error' ? '#e74c3c' : diff.severity === 'Warning' ? '#f39c12' : '#3498db';
+        let icon = diff.severity === 'Error' ? '❌' : diff.severity === 'Warning' ? '⚠️' : 'ℹ️';
+        let pathStr = Array.isArray(diff.path) ? diff.path.join('.') : diff.path;
+        if (diff.kind === 'D') {
+          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> was <b>removed</b> from <b>Staging</b>.`;
+        } else if (diff.kind === 'N') {
+          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> was <b>added</b> in <b>Staging</b>.`;
+        } else if (diff.kind === 'E') {
+          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> changed: <span style='color:#b30000;'>${JSON.stringify(diff.lhs)}</span> → <span style='color:#006b21;'>${JSON.stringify(diff.rhs)}</span>`;
+        } else if (diff.kind === 'A') {
+          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> array changed.`;
+        } else {
+          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> changed.`;
+        }
+        summaryList.innerHTML += `<li style='margin-bottom:4px;'>${msg}</li>`;
+      });
+      card.appendChild(summaryList);
+    }
 
     // Headers are now displayed in the job summary section, so we don't need individual header buttons
 
