@@ -51,6 +51,45 @@ async function generateReports() {
   // 1) Prompt for QA/Test Engineer name
   const qaName = readline.question("Enter QA/Test Engineer Name: ");
 
+  // --- BEGIN ARCHIVING LOGIC ---
+  const reportsBaseDir = "reports";
+  const archiveBaseDir = "old_reports";
+
+  try {
+    if (fs.existsSync(reportsBaseDir)) {
+      console.log(`\n▶ Archiving existing reports from '${reportsBaseDir}'...`);
+      if (!fs.existsSync(archiveBaseDir)) {
+        fs.mkdirSync(archiveBaseDir, { recursive: true });
+        console.log(`  Created archive directory: '${archiveBaseDir}'`);
+      }
+
+      const existingItems = fs.readdirSync(reportsBaseDir);
+      let archivedCount = 0;
+      for (const item of existingItems) {
+        const sourcePath = path.join(reportsBaseDir, item);
+        if (fs.statSync(sourcePath).isDirectory()) { // Ensure we are only moving directories
+          const destinationPath = path.join(archiveBaseDir, item);
+          // Note: fs.renameSync might error if destinationPath (a folder with the same name) already exists in old_reports.
+          // Assuming timestamped folder names are unique enough to avoid collisions.
+          fs.renameSync(sourcePath, destinationPath);
+          console.log(`  Moved '${sourcePath}' to '${destinationPath}'`);
+          archivedCount++;
+        }
+      }
+      if (archivedCount > 0) {
+        console.log(`  Successfully archived ${archivedCount} report folder(s).`);
+      } else {
+        console.log(`  No report folders found in '${reportsBaseDir}' to archive.`);
+      }
+    } else {
+      console.log(`\n▶ No existing '${reportsBaseDir}' directory found. Skipping archiving.`);
+    }
+  } catch (error) {
+    console.error("\n⚠️ Error during report archiving:", error);
+    console.log("  Proceeding with new report generation despite archiving error.");
+  }
+  // --- END ARCHIVING LOGIC ---
+
   // 2) Run all jobs
   console.log(`\n▶ Running tests as QA ${qaName}\n`);
   
@@ -61,8 +100,13 @@ async function generateReports() {
   const allJobResults = await runAllJobsWithQA(qaName, humanTs);
 
   // 3) Write to a single timestamped folder with IST timestamp
-  const outDir = path.join("reports", folderTs);
-  fs.mkdirSync(outDir, { recursive: true });
+  // Ensure the 'reports' base directory exists before creating the timestamped subfolder
+  // 'reportsBaseDir' is already defined earlier in the function.
+  if (!fs.existsSync(reportsBaseDir)) {
+      fs.mkdirSync(reportsBaseDir, { recursive: true });
+  }
+  const outDir = path.join(reportsBaseDir, folderTs);
+  fs.mkdirSync(outDir, { recursive: true }); // This creates the specific timestamped folder in 'reports/'
 
   // 4) Write diff_data.json
   const outPath = path.join(outDir, "diff_data.json");

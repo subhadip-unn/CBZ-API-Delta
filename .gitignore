@@ -3,6 +3,11 @@ reports/20*
 reports/*/
 !reports/.gitkeep
 
+# Exclude generated old reports but keep old_reports folder
+old_reports/20*
+old_reports/*/
+!old_reports/.gitkeep
+
 # Node.js dependencies
 node_modules/
 
