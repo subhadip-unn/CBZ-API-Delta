@@ -4,6 +4,30 @@ A powerful API comparison tool for testing endpoints across multiple geolocation
 
 ## Features
 
+---
+
+### 💡 Advanced JSON Colorization (Optional Improvement)
+
+If you want even better colorization (like VSCode or Postman):
+
+You can use a library like **Prism.js** or **highlight.js** to do syntax highlighting for JSON. These libraries:
+
+- Parse the JSON
+- Output HTML with CSS classes for color
+- Are more robust and look more like editors
+
+**To enable this:**
+- Integrate Prism.js or highlight.js in the frontend
+- Replace the plain <pre> JSON block with a highlighted block using the library
+
+**Options:**
+- Integrate Prism.js or highlight.js for even prettier JSON
+- Or keep the default plain JSON display for simplicity and copy-paste reliability
+
+If you want this feature, let your developer know!
+
+---
+
 1. **Multi-Geo Support**: `cb-loc` headers are processed as JSON arrays, testing API responses across multiple geographic locations (IN, US, CA, AE)
 2. **Limited Concurrency**: Uses `p-limit` (max 5 concurrent requests) to drastically speed up HTTP calls while preventing server overload
 3. **All-Jobs Dashboard**: Combines all platform jobs into a single `diff_data.json` with tabbed UI for switching between iOS, Android, Mobile-Web, and Desktop-Web

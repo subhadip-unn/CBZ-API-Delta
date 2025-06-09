@@ -478,31 +478,143 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       const toggleBtn = document.createElement("button");
       toggleBtn.textContent = "Show JSON A vs B";
       toggleBtn.className = "show-json-btn";
+      toggleBtn.style.cssText = `
+        background-color: #3498db; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        font-weight: 600; 
+        margin: 10px 0;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s;
+      `;
+      toggleBtn.innerHTML = '<span style="margin-right:8px;">🔍</span> Show JSON A vs B';
+      toggleBtn.onmouseover = () => toggleBtn.style.backgroundColor = '#2980b9';
+      toggleBtn.onmouseout = () => toggleBtn.style.backgroundColor = '#3498db';
 
       // 2) Hidden side-by-side container
       const sideBySideDiv = document.createElement("div");
-      sideBySideDiv.className = "json-side-by-side"; 
-      // no ".expanded" class initially
+      sideBySideDiv.className = "json-side-by-side";
+      sideBySideDiv.style.cssText = `
+        display: none;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      `;
 
       // 3) Pane A
       const paneA = document.createElement("div");
       paneA.className = "json-pane";
-      paneA.textContent = JSON.stringify(rec.rawJsonA, null, 2);
+      paneA.style.cssText = `
+        background: #f8f9fa; 
+        padding: 16px; 
+        border-radius: 4px; 
+        max-height: 500px; 
+        overflow-y: auto;
+        border-left: 4px solid #3498db;
+        font-family: monospace;
+        white-space: pre-wrap;
+      `;
+      
+      // Plain text for copying (hidden)
+      const rawTextA = document.createElement('pre');
+      rawTextA.style.cssText = 'display: none;';
+      rawTextA.textContent = JSON.stringify(rec.rawJsonA, null, 2);
+      
+      // For display: plain JSON only
+      const headerA = document.createElement('div');
+      headerA.style.cssText = 'font-weight:600; margin-bottom:10px; color:#3498db; display:flex; justify-content:space-between;';
+      headerA.innerHTML = `
+        <span>Production (A)</span>
+        <button class="copy-json-btn" style="background:none;border:none;color:#3498db;cursor:pointer;font-size:12px;">
+          📋 Copy JSON
+        </button>
+      `;
+      paneA.appendChild(headerA);
+      
+      const contentA = document.createElement('pre');
+      contentA.style.cssText = 'background: #f8f9fa; padding: 0; margin: 0; border: none; font-family: monospace; font-size: 13px; color: #222;';
+      contentA.textContent = rawTextA.textContent;
+      paneA.appendChild(contentA);
+      paneA.appendChild(rawTextA);
+      
+      // Add copy functionality
+      const copyBtnA = headerA.querySelector('.copy-json-btn');
+      copyBtnA.addEventListener('click', () => {
+        navigator.clipboard.writeText(rawTextA.textContent)
+          .then(() => {
+            copyBtnA.textContent = '✓ Copied!';
+            setTimeout(() => copyBtnA.innerHTML = '📋 Copy JSON', 2000);
+          })
+          .catch(err => console.error('Failed to copy:', err));
+      });
 
       // 4) Pane B
       const paneB = document.createElement("div");
       paneB.className = "json-pane";
-      paneB.textContent = JSON.stringify(rec.rawJsonB, null, 2);
+      paneB.style.cssText = `
+        background: #f8f9fa; 
+        padding: 16px; 
+        border-radius: 4px; 
+        max-height: 500px; 
+        overflow-y: auto;
+        border-left: 4px solid #2ecc71;
+        font-family: monospace;
+        white-space: pre-wrap;
+      `;
+      
+      // Plain text for copying (hidden)
+      const rawTextB = document.createElement('pre');
+      rawTextB.style.cssText = 'display: none;';
+      rawTextB.textContent = JSON.stringify(rec.rawJsonB, null, 2);
+      
+      // For display: plain JSON only
+      const headerB = document.createElement('div');
+      headerB.style.cssText = 'font-weight:600; margin-bottom:10px; color:#2ecc71; display:flex; justify-content:space-between;';
+      headerB.innerHTML = `
+        <span>Staging (B)</span>
+        <button class="copy-json-btn" style="background:none;border:none;color:#2ecc71;cursor:pointer;font-size:12px;">
+          📋 Copy JSON
+        </button>
+      `;
+      paneB.appendChild(headerB);
+      
+      const contentB = document.createElement('pre');
+      contentB.style.cssText = 'background: #f8f9fa; padding: 0; margin: 0; border: none; font-family: monospace; font-size: 13px; color: #222;';
+      contentB.textContent = rawTextB.textContent;
+      paneB.appendChild(contentB);
+      paneB.appendChild(rawTextB);
+      
+      // Add copy functionality
+      const copyBtnB = headerB.querySelector('.copy-json-btn');
+      copyBtnB.addEventListener('click', () => {
+        navigator.clipboard.writeText(rawTextB.textContent)
+          .then(() => {
+            copyBtnB.textContent = '✓ Copied!';
+            setTimeout(() => copyBtnB.innerHTML = '📋 Copy JSON', 2000);
+          })
+          .catch(err => console.error('Failed to copy:', err));
+      });
 
       sideBySideDiv.appendChild(paneA);
       sideBySideDiv.appendChild(paneB);
 
-      // 5) Toggle logic: add/remove "expanded"
+      // 5) Toggle logic: show/hide with slide effect
       toggleBtn.addEventListener("click", () => {
-        const expanded = sideBySideDiv.classList.toggle("expanded");
-        toggleBtn.textContent = expanded
-          ? "Hide JSON A vs B"
-          : "Show JSON A vs B";
+        const isExpanded = sideBySideDiv.style.display !== "none";
+        if (isExpanded) {
+          sideBySideDiv.style.display = "none";
+          toggleBtn.innerHTML = '<span style="margin-right:8px;">🔍</span> Show JSON A vs B';
+        } else {
+          sideBySideDiv.style.display = "grid";
+          toggleBtn.innerHTML = '<span style="margin-right:8px;">🔼</span> Hide JSON A vs B';
+        }
       });
 
       card.appendChild(toggleBtn);
@@ -512,29 +624,82 @@ ${JSON.stringify(job.headersUsed, null, 2)}
     // Show Diffs button + diff content
     if (rec.diffs && rec.diffs.length > 0) {
       const btn = document.createElement("button");
-      btn.textContent = "Show Diffs";
       btn.className = "toggle-btn";
+      btn.style.cssText = `
+        background-color: #9b59b6; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        font-weight: 600; 
+        margin: 10px 5px 10px 0;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s;
+      `;
+      btn.innerHTML = '<span style="margin-right:8px;">📐</span> Show Differences';
+      btn.onmouseover = () => btn.style.backgroundColor = '#8e44ad';
+      btn.onmouseout = () => btn.style.backgroundColor = '#9b59b6';
 
       const diffContainer = document.createElement("div");
       diffContainer.className = "diff-content";
-      diffContainer.style.display = "none";
+      diffContainer.style.cssText = `
+        display: none;
+        padding: 16px;
+        margin: 16px 0;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #9b59b6;
+      `;
 
       rec.diffs.forEach((d) => {
         // Get the kind of change and display it in a human-readable format
         let changeType = "Unknown";
+        let changeColor = "#888";
+        let changeIcon = "";
+        
         switch(d.kind) {
-          case "E": changeType = "Edit (Value Changed)"; break;
-          case "N": changeType = "New (Value Added)"; break;
-          case "D": changeType = "Delete (Value Removed)"; break;
-          case "A": changeType = "Array (Item Changed)"; break;
+          case "E": 
+            changeType = "Edit (Value Changed)"; 
+            changeColor = "#3498db"; // Blue
+            changeIcon = "🔄";
+            break;
+          case "N": 
+            changeType = "New (Value Added)"; 
+            changeColor = "#2ecc71"; // Green
+            changeIcon = "➕";
+            break;
+          case "D": 
+            changeType = "Delete (Value Removed)"; 
+            changeColor = "#e74c3c"; // Red
+            changeIcon = "➖";
+            break;
+          case "A": 
+            changeType = "Array (Item Changed)"; 
+            changeColor = "#9b59b6"; // Purple
+            changeIcon = "📝";
+            break;
         }
         
-        // Format before/after values nicely
+        // Get severity color
+        let severityColor = d.severity === 'Error' ? '#e74c3c' : d.severity === 'Warning' ? '#f39c12' : '#3498db';
+        let severityIcon = d.severity === 'Error' ? '❌' : d.severity === 'Warning' ? '⚠️' : 'ℹ️';
+        
+        // Format before/after values nicely with syntax highlighting for objects
         const formatValue = (val) => {
-          if (val === undefined) return "<em>undefined</em>";
-          if (val === null) return "<em>null</em>";
-          if (typeof val === "object") return `<pre>${JSON.stringify(val, null, 2)}</pre>`;
-          if (typeof val === "string") return `"${val}"`;
+          if (val === undefined) return "<em style='color:#888;'>undefined</em>";
+          if (val === null) return "<em style='color:#888;'>null</em>";
+          if (typeof val === "object") {
+            // Pretty print objects with syntax highlighting
+            const formatted = JSON.stringify(val, null, 2)
+              .replace(/\"([^\"]+)\"\s*:/g, '<span style="color:#e67e22;">"$1"</span>:') // keys in orange
+              .replace(/(true|false)/g, '<span style="color:#8e44ad;">$1</span>') // booleans in purple
+              .replace(/(\d+)/g, '<span style="color:#16a085;">$1</span>'); // numbers in teal
+            return `<pre style="background:#f8f9fa; padding:8px; border-radius:4px; border-left:4px solid #ddd;">${formatted}</pre>`;
+          }
+          if (typeof val === "string") return `<span style="color:#c0392b;">"${val}"</span>`; // strings in red
           return String(val);
         };
         
@@ -547,20 +712,49 @@ ${JSON.stringify(job.headersUsed, null, 2)}
           // Fallback to simple display
         }
         
+        // Get path display with better formatting
+        const pathDisplay = Array.isArray(d.path) ? 
+          d.path.map(segment => `<span style="font-family:monospace; background:#f1f1f1; padding:2px 5px; margin:0 2px; border-radius:3px;">${segment}</span>`).join('.') : 
+          `<span style="font-family:monospace; background:#f1f1f1; padding:2px 5px; margin:0 2px; border-radius:3px;">${d.path}</span>`;
+        
+        // Create card-style diff with improved visual hierarchy
         const wrapper = document.createElement("div");
         wrapper.className = "single-diff";
+        wrapper.style.cssText = "background-color:#fff; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-bottom:16px; padding:16px; border-left:5px solid " + severityColor;
+        
         wrapper.innerHTML = `
-          <div><strong>Path:</strong> ${d.path}</div>
-          <div><strong>Change Type:</strong> ${changeType}</div>
-          <div><strong>Severity:</strong> ${d.severity}</div>
-          <div style="margin-top: 8px;">
-            <strong>Before:</strong> ${formatValue(d.lhs)}
+          <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+            <div style="display:flex; align-items:center;">
+              <span style="font-size:16px; margin-right:5px;">${severityIcon}</span>
+              <span style="font-weight:600; color:${severityColor};">${d.severity}</span>
+            </div>
+            <div style="display:flex; align-items:center;">
+              <span style="font-size:16px; margin-right:5px;">${changeIcon}</span>
+              <span style="font-weight:500; color:${changeColor};">${changeType}</span>
+            </div>
           </div>
-          <div style="margin-top: 4px;">
-            <strong>After:</strong> ${formatValue(d.rhs)}
+          
+          <div style="margin-bottom:12px;">
+            <div style="font-weight:600; margin-bottom:5px; color:#555;">Path:</div>
+            <div style="font-size:14px;">${pathDisplay}</div>
           </div>
-          ${diffHtml ? `<div class="delta-view" style="margin-top: 8px;">${diffHtml}</div>` : ''}
-          <hr />
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div style="padding:12px; background:#f8f9fa; border-radius:4px; border-left:4px solid #e74c3c;">
+              <div style="font-weight:600; color:#e74c3c; margin-bottom:8px;">Before:</div>
+              ${formatValue(d.lhs)}
+            </div>
+            <div style="padding:12px; background:#f8f9fa; border-radius:4px; border-left:4px solid #2ecc71;">
+              <div style="font-weight:600; color:#2ecc71; margin-bottom:8px;">After:</div>
+              ${formatValue(d.rhs)}
+            </div>
+          </div>
+          
+          ${diffHtml ? `
+          <div style="margin-top:16px; border-top:1px solid #eee; padding-top:16px;">
+            <div style="font-weight:600; margin-bottom:10px; color:#555;">Visual Diff:</div>
+            <div class="delta-view" style="background:#fff; border:1px solid #e0e0e0; border-radius:4px; padding:12px;">${diffHtml}</div>
+          </div>` : ''}
         `;
         diffContainer.appendChild(wrapper);
       });
@@ -568,10 +762,10 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       btn.addEventListener("click", () => {
         if (diffContainer.style.display === "none") {
           diffContainer.style.display = "block";
-          btn.textContent = "Hide Diffs";
+          btn.innerHTML = '<span style="margin-right:8px;">🔽</span> Hide Differences';
         } else {
           diffContainer.style.display = "none";
-          btn.textContent = "Show Diffs";
+          btn.innerHTML = '<span style="margin-right:8px;">📐</span> Show Differences';
         }
       });
 
