@@ -1,5 +1,22 @@
 // src/reportGenerator.js
 
+// Intercept and filter TLS certificate warnings
+// This must be added before any other requires
+const originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, ...args) {
+  // Suppress TLS certificate verification warnings
+  if (warning && typeof warning === 'string' && (
+    warning.includes('NODE_TLS_REJECT_UNAUTHORIZED') || 
+    warning.includes('TLS certificate') || 
+    warning.includes('certificate verification')
+  )) {
+    return; // Suppress the warning
+  }
+  // For all other warnings, use the original behavior
+  return originalEmitWarning.call(this, warning, ...args);
+};
+
+
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline-sync");
@@ -123,6 +140,7 @@ async function generateReports() {
 /**
  * runAllJobsWithQA(qaName, timestamp)
  *   Runs each job sequentially and injects testEngineer=qaName and IST timestamp into each jobResult.
+ *   Filters jobs based on QUICK_MODE environment variable.
  */
 async function runAllJobsWithQA(qaName, timestamp) {
   const compCfg = YAML.load(fs.readFileSync("config/comparison.yaml", "utf8"));
@@ -130,8 +148,27 @@ async function runAllJobsWithQA(qaName, timestamp) {
   const idsAll = JSON.parse(fs.readFileSync("config/ids.json", "utf8"));
   const endpointsDef = YAML.load(fs.readFileSync("config/endpoints.yaml", "utf8"));
   
+  // Check if QUICK_MODE is enabled
+  const isQuickMode = process.env.QUICK_MODE === 'true';
+  console.log(`\n${isQuickMode ? '⚡ Running in QUICK MODE' : '🔍 Running in FULL TEST MODE'}\n`);
+  
+  // Filter jobs based on QUICK_MODE:
+  // - If QUICK_MODE=true, only run jobs with quickMode:true
+  // - If not in QUICK_MODE, exclude jobs with quickMode:true
+  const filteredJobs = compCfg.jobs.filter(job => {
+    if (isQuickMode) {
+      return job.quickMode === true;
+    } else {
+      return job.quickMode !== true;
+    }
+  });
+  
+  if (filteredJobs.length === 0) {
+    console.log(`⚠️ Warning: No jobs match the current mode criteria. Check your comparison.yaml configuration.`);
+  }
+  
   const jobResults = [];
-  for (const jobConfig of compCfg.jobs) {
+  for (const jobConfig of filteredJobs) {
     console.log(`\n▶ Running job: ${jobConfig.name}`);
     const result = await runJob(jobConfig, headersAll, idsAll, endpointsDef);
     console.log(`✅ Finished job: ${jobConfig.name} → total=${result.totalTasks}, failures=${result.failures || 0}, diffs=${result.diffsFound || 0}`);

@@ -95,17 +95,34 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
   }
   let completedTasks = 0;
   
-  // Initialize progress bar
-  const progressBar = new cliProgress.SingleBar({
-    format: '[{bar}] {percentage}% | {value}/{total} | ETA: {eta_formatted}s | {jobName}',
-    barCompleteChar: '#',
-    barIncompleteChar: '-',
-    hideCursor: true
-  }, cliProgress.Presets.shades_classic);
+  // Store progress bar as instance property for better control
+  this.progressBar = null;
+  
+  // For single-task jobs, we'll use a spinner instead of a progress bar
+  // Store the spinner state
+  this.spinnerState = { frames: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'], index: 0 };
+  this.spinnerInterval = null;
   
   // Show total task count for this job
   console.log(`→ Total comparisons: ${totalTasks}`);
-  progressBar.start(totalTasks, 0, { jobName: jobConfig.name });
+  
+  // Use spinner for single-task jobs, progress bar for multi-task jobs
+  if (totalTasks === 1) {
+    // Start spinner for single-task jobs
+    this.spinnerInterval = setInterval(() => {
+      process.stdout.write(`\r${this.spinnerState.frames[this.spinnerState.index]} Processing comparison... | ${jobConfig.name}`);
+      this.spinnerState.index = (this.spinnerState.index + 1) % this.spinnerState.frames.length;
+    }, 100);
+  } else {
+    // Initialize progress bar for multi-task jobs
+    this.progressBar = new cliProgress.SingleBar({
+      format: '[{bar}] {percentage}% | {value}/{total} | ETA: {eta_formatted} | {jobName}',
+      barCompleteChar: '#',
+      barIncompleteChar: '-',
+      hideCursor: true
+    }, cliProgress.Presets.shades_classic);
+    this.progressBar.start(totalTasks, 0, { jobName: jobConfig.name });
+  }
 
 
   // 3) Loop endpoints → substitutions → geos
@@ -172,7 +189,12 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
               : `B failed (loc=${loc}): ${respB.error}`;
             allRecords.push(rec);
           completedTasks++;
-          progressBar.update(completedTasks);
+          // Update progress based on whether we're using spinner or progress bar
+          if (totalTasks === 1) {
+            // Single task uses spinner - nothing to update
+          } else if (this.progressBar) {
+            this.progressBar.update(completedTasks);
+          }
             return;
           }
 
@@ -184,7 +206,12 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
           }
           allRecords.push(rec);
           completedTasks++;
-          progressBar.update(completedTasks);
+          // Update progress based on whether we're using spinner or progress bar
+          if (totalTasks === 1) {
+            // Single task uses spinner - nothing to update
+          } else if (this.progressBar) {
+            this.progressBar.update(completedTasks);
+          }
         }));
       }
     }
@@ -193,8 +220,20 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
   // 4) Await all tasks
   await Promise.all(tasks);
   
-  // Stop the progress bar
-  progressBar.stop();
+  // Clean up progress indicators
+  if (totalTasks === 1) {
+    // Clear spinner and print completion message
+    if (this.spinnerInterval) {
+      clearInterval(this.spinnerInterval);
+      this.spinnerInterval = null;
+      process.stdout.clearLine(0);
+      process.stdout.cursorTo(0);
+      console.log(`✓ Completed comparison for ${jobConfig.name}`);
+    }
+  } else if (this.progressBar) {
+    // Stop the progress bar
+    this.progressBar.stop();
+  }
 
   // 5) Summarize
   const totalCount = allRecords.length;
