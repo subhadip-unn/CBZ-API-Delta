@@ -367,6 +367,9 @@ ${JSON.stringify(job.headersUsed, null, 2)}
     if (rec.error) overallSeverity = "failure";
     else if (rec.diffs.some(d => d.severity === "Error")) overallSeverity = "error";
     else if (rec.diffs.some(d => d.severity === "Warning")) overallSeverity = "warning";
+    
+    // Set data attribute for search and filtering
+    card.dataset.severity = overallSeverity;
 
     // Choose icon
     let icon = "✅";
@@ -583,11 +586,74 @@ ${JSON.stringify(job.headersUsed, null, 2)}
   const searchInput = container.querySelector("#endpointSearch");
   searchInput.addEventListener("keyup", () => {
     const query = searchInput.value.toLowerCase();
+    
+    // Clear previous highlights first
+    container.querySelectorAll('.search-highlight').forEach(el => {
+      const parent = el.parentNode;
+      parent.replaceChild(document.createTextNode(el.textContent), el);
+      parent.normalize();
+    });
+    
     container.querySelectorAll(".endpoint-card").forEach(card => {
+      // If query is empty, show all cards
+      if (!query.trim()) {
+        card.style.display = "block";
+        return;
+      }
+      
+      // Otherwise, show only cards that match the query
       const text = card.innerText.toLowerCase();
-      card.style.display = text.includes(query) ? "block" : "none";
+      if (text.includes(query)) {
+        card.style.display = "block";
+        // Highlight matches
+        highlightText(card, new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'));
+      } else {
+        card.style.display = "none";
+      }
     });
   });
+  
+  // Helper function to highlight matched text
+  function highlightText(element, regex) {
+    if (!element) return;
+    
+    if (element.nodeType === 3) { // Text node
+      const matches = element.nodeValue.match(regex);
+      if (matches) {
+        const frag = document.createDocumentFragment();
+        const parts = element.nodeValue.split(regex);
+        
+        for (let i = 0; i < parts.length; i++) {
+          frag.appendChild(document.createTextNode(parts[i]));
+          
+          if (i < parts.length - 1) {
+            const highlightSpan = document.createElement('span');
+            highlightSpan.className = 'search-highlight';
+            highlightSpan.style.backgroundColor = '#ffeb3b';
+            highlightSpan.style.color = '#000';
+            highlightSpan.appendChild(document.createTextNode(matches[i]));
+            frag.appendChild(highlightSpan);
+          }
+        }
+        
+        element.parentNode.replaceChild(frag, element);
+        return true;
+      }
+    } else if (element.nodeType === 1) { // Element node
+      // Skip already highlighted elements or style/script tags
+      if (element.tagName === 'STYLE' || 
+          element.tagName === 'SCRIPT' || 
+          element.classList.contains('search-highlight')) {
+        return false;
+      }
+      
+      // Process child nodes
+      Array.from(element.childNodes).forEach(child => {
+        highlightText(child, regex);
+      });
+    }
+    return false;
+  }
 
   const showAllBtn = container.querySelector("#showAll");
   const showErrorsBtn = container.querySelector("#showErrors");
