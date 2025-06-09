@@ -5,7 +5,7 @@ jobs:
   - name: "Quick Test: iOS Prod v1 vs Stg v2"  
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
+    baseB: "http://api.cricbuzz.stg"
     quickMode: true
     endpointsToRun:
       - "matches-live-v1"
@@ -26,7 +26,7 @@ jobs:
   - name: "iOS: Prod v1 vs Stg v2 (match endpoints)"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
+    baseB: "http://api.cricbuzz.stg"
     endpointsToRun:
       - "matches-live-v1"
       - "matches-recent-v1"
@@ -46,7 +46,7 @@ jobs:
   - name: "Android: Prod v1 vs Stg v2 (match endpoints)"
     platform: "a"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
+    baseB: "http://api.cricbuzz.stg"
     endpointsToRun:
       - "matches-live-v1"
       - "matches-recent-v1"
@@ -66,7 +66,7 @@ jobs:
   - name: "Mobile-Web: Prod v1 vs Stg v2 (match endpoints)"
     platform: "m"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
+    baseB: "http://api.cricbuzz.stg"
     endpointsToRun:
       - "matches-live-v1"
       - "matches-recent-v1"
@@ -86,7 +86,7 @@ jobs:
   - name: "Desktop-Web: Prod v1 vs Stg v2 (match endpoints)"
     platform: "w"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
+    baseB: "http://api.cricbuzz.stg"
     endpointsToRun:
       - "matches-live-v1"
       - "matches-recent-v1"
