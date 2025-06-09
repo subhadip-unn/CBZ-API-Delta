@@ -1,65 +1,142 @@
 # config/endpoints.yaml
 
-# iOS platform endpoints
-- key: "team-players"
+# PRODUCTION (v1) endpoints for all platforms
+- key: "matches-live-v1"
   platform: "i"
-  path: "teams/v1/{teamId}/players"
-  idCategory: "teamId"
-
-- key: "team-results"
+  path: "matches/v1/live"
+  idCategory: null
+- key: "matches-recent-v1"
   platform: "i"
-  path: "teams/v1/{teamId}/results"
-  idCategory: "teamId"
-
-- key: "team-info"
+  path: "matches/v1/recent"
+  idCategory: null
+- key: "matches-upcoming-v1"
   platform: "i"
-  path: "teams/v1/{teamId}/info"
-  idCategory: "teamId"
-
-- key: "venue-info"
+  path: "matches/v1/upcoming"
+  idCategory: null
+- key: "matches-current-v1"
   platform: "i"
-  path: "venues/v1/{venueId}"
-  idCategory: "venueId"
-
-- key: "venue-matches"
-  platform: "i"
-  path: "venues/v1/{venueId}/matches"
-  idCategory: "venueId"
-
-- key: "series-squads"
-  platform: "i"
-  path: "series/v1/{seriesId}/squads/{squadId}"
+  path: "matches/v1/current"
   idCategory: null
 
-- key: "series-venues"
-  platform: "i"
-  path: "series/v1/{seriesId}/venues"
-  idCategory: "seriesId"
-
-- key: "series-squads-list"
-  platform: "i"
-  path: "series/v1/{seriesId}/squads"
-  idCategory: "seriesId"
-
-- key: "series-info"
-  platform: "i"
-  path: "series/v1/{seriesId}/info"
-  idCategory: "seriesId"
-
-- key: "series-archives"
-  platform: "i"
-  path: "series/v1/archives/{category}"
-  idCategory: "category"
-
-- key: "series-points-index"
-  platform: "i"
-  path: "series/v1/points/index"
+- key: "matches-live-v1"
+  platform: "a"
+  path: "matches/v1/live"
+  idCategory: null
+- key: "matches-recent-v1"
+  platform: "a"
+  path: "matches/v1/recent"
+  idCategory: null
+- key: "matches-upcoming-v1"
+  platform: "a"
+  path: "matches/v1/upcoming"
+  idCategory: null
+- key: "matches-current-v1"
+  platform: "a"
+  path: "matches/v1/current"
   idCategory: null
 
-- key: "series-season"
+- key: "matches-live-v1"
+  platform: "m"
+  path: "matches/v1/live"
+  idCategory: null
+- key: "matches-recent-v1"
+  platform: "m"
+  path: "matches/v1/recent"
+  idCategory: null
+- key: "matches-upcoming-v1"
+  platform: "m"
+  path: "matches/v1/upcoming"
+  idCategory: null
+- key: "matches-current-v1"
+  platform: "m"
+  path: "matches/v1/current"
+  idCategory: null
+
+- key: "matches-live-v1"
+  platform: "w"
+  path: "matches/v1/live"
+  idCategory: null
+- key: "matches-recent-v1"
+  platform: "w"
+  path: "matches/v1/recent"
+  idCategory: null
+- key: "matches-upcoming-v1"
+  platform: "w"
+  path: "matches/v1/upcoming"
+  idCategory: null
+- key: "matches-current-v1"
+  platform: "w"
+  path: "matches/v1/current"
+  idCategory: null
+
+# STAGING (v2) endpoints for all platforms
+- key: "matches-live-v2"
   platform: "i"
-  path: "series/v1/{seriesId}/season"
-  idCategory: "seriesId"
+  path: "matches/v2/live"
+  idCategory: null
+- key: "matches-recent-v2"
+  platform: "i"
+  path: "matches/v2/recent"
+  idCategory: null
+- key: "matches-upcoming-v2"
+  platform: "i"
+  path: "matches/v2/upcoming"
+  idCategory: null
+- key: "matches-current-v2"
+  platform: "i"
+  path: "matches/v2/current"
+  idCategory: null
+
+- key: "matches-live-v2"
+  platform: "a"
+  path: "matches/v2/live"
+  idCategory: null
+- key: "matches-recent-v2"
+  platform: "a"
+  path: "matches/v2/recent"
+  idCategory: null
+- key: "matches-upcoming-v2"
+  platform: "a"
+  path: "matches/v2/upcoming"
+  idCategory: null
+- key: "matches-current-v2"
+  platform: "a"
+  path: "matches/v2/current"
+  idCategory: null
+
+- key: "matches-live-v2"
+  platform: "m"
+  path: "matches/v2/live"
+  idCategory: null
+- key: "matches-recent-v2"
+  platform: "m"
+  path: "matches/v2/recent"
+  idCategory: null
+- key: "matches-upcoming-v2"
+  platform: "m"
+  path: "matches/v2/upcoming"
+  idCategory: null
+- key: "matches-current-v2"
+  platform: "m"
+  path: "matches/v2/current"
+  idCategory: null
+
+- key: "matches-live-v2"
+  platform: "w"
+  path: "matches/v2/live"
+  idCategory: null
+- key: "matches-recent-v2"
+  platform: "w"
+  path: "matches/v2/recent"
+  idCategory: null
+- key: "matches-upcoming-v2"
+  platform: "w"
+  path: "matches/v2/upcoming"
+  idCategory: null
+- key: "matches-current-v2"
+  platform: "w"
+  path: "matches/v2/current"
+  idCategory: null
 
 - key: "series-list-id"
   platform: "i"

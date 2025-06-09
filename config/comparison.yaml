@@ -1,14 +1,21 @@
 # config/comparison.yaml
 
 jobs:
-  # Quick test job - only first venue ID, first geo location
-  - name: "Quick Test: iOS Prod vs Stg"  
+  # Quick test job - only first ID, first geo location
+  - name: "Quick Test: iOS Prod v1 vs Stg v2"  
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "https://api.cricbuzz.stg"
     quickMode: true
     endpointsToRun:
-      - "venue-info"
+      - "matches-live-v1"
+      - "matches-recent-v1"
+      - "matches-upcoming-v1"
+      - "matches-current-v1"
+      - "matches-live-v2"
+      - "matches-recent-v2"
+      - "matches-upcoming-v2"
+      - "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -16,13 +23,19 @@ jobs:
       retries: 1
       delayMs: 1000
 
-  - name: "iOS: Prod vs Stg (venue endpoints)"
+  - name: "iOS: Prod v1 vs Stg v2 (match endpoints)"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "https://api.cricbuzz.stg"
     endpointsToRun:
-      - "venue-info"
-      - "venue-matches"
+      - "matches-live-v1"
+      - "matches-recent-v1"
+      - "matches-upcoming-v1"
+      - "matches-current-v1"
+      - "matches-live-v2"
+      - "matches-recent-v2"
+      - "matches-upcoming-v2"
+      - "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -30,13 +43,19 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Android: Prod vs Stg (venue endpoints)"
+  - name: "Android: Prod v1 vs Stg v2 (match endpoints)"
     platform: "a"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "https://api.cricbuzz.stg"
     endpointsToRun:
-      - "venue-info"
-      - "venue-matches"
+      - "matches-live-v1"
+      - "matches-recent-v1"
+      - "matches-upcoming-v1"
+      - "matches-current-v1"
+      - "matches-live-v2"
+      - "matches-recent-v2"
+      - "matches-upcoming-v2"
+      - "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -44,13 +63,19 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Mobile-Web: Prod vs Stg (venue endpoints)"
+  - name: "Mobile-Web: Prod v1 vs Stg v2 (match endpoints)"
     platform: "m"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "https://api.cricbuzz.stg"
     endpointsToRun:
-      - "venue-info"
-      - "venue-matches"
+      - "matches-live-v1"
+      - "matches-recent-v1"
+      - "matches-upcoming-v1"
+      - "matches-current-v1"
+      - "matches-live-v2"
+      - "matches-recent-v2"
+      - "matches-upcoming-v2"
+      - "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -58,13 +83,19 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Desktop-Web: Prod vs Stg (venue endpoints)"
+  - name: "Desktop-Web: Prod v1 vs Stg v2 (match endpoints)"
     platform: "w"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "https://api.cricbuzz.stg"
     endpointsToRun:
-      - "venue-info"
-      - "venue-matches"
+      - "matches-live-v1"
+      - "matches-recent-v1"
+      - "matches-upcoming-v1"
+      - "matches-current-v1"
+      - "matches-live-v2"
+      - "matches-recent-v2"
+      - "matches-upcoming-v2"
+      - "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
