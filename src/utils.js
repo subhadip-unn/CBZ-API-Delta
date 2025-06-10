@@ -81,11 +81,18 @@ function filterDiffs(diffArray, ignorePaths) {
 
 /**
  * classifyDiffs(diffObj)
- *   Given one deep-diff object { kind, path, lhs, rhs, ... }, assign severity:
- *     - "Error" for New (N), Delete (D), Array (A), or non-numeric Edit
- *     - "Warning" for numeric Edit (kind "E")
+ *   Given one deep-diff object { kind, path, lhs, rhs, ... }, assigns:
+ *   1. severity:
+ *      - "Error" for New (N), Delete (D), Array (A), or non-numeric Edit
+ *      - "Warning" for numeric Edit (kind "E")
+ *   2. changeType:
+ *      - "structural" for New (N), Delete (D) changes that affect the structure
+ *      - "structural" for Array (A) changes that add/remove elements
+ *      - "value" for Edit (E) changes, and Array (A) changes that only modify values
+ *   3. priority: Numerical value to help rank/sort changes by importance
  */
 function classifyDiffs(d) {
+  // Set severity (as before)
   let severity = "Error";
   if (d.kind === "E") {
     const lhsType = typeof d.lhs;
@@ -94,8 +101,71 @@ function classifyDiffs(d) {
       severity = "Warning";
     }
   }
-  d.severity = severity; // Add severity to the original diff object
-  // d.stringPath = d.path ? d.path.join(".") : ""; // Optionally add for other uses, but keep d.path as array
+  
+  // Improved categorization for change type
+  let changeType = "value";
+  // Priority ranking (higher = more important)
+  let priority = 1;
+  
+  // Property deletions - highest priority structural changes (missing fields)
+  if (d.kind === "D") {
+    changeType = "structural";
+    priority = 10; // Highest priority - these need to be extremely visible
+  }
+  // Property additions - high priority structural changes (new fields)
+  else if (d.kind === "N") {
+    changeType = "structural";
+    priority = 8;
+  }
+  // Array changes - need deeper analysis
+  else if (d.kind === "A") {
+    if (d.item.kind === "N" || d.item.kind === "D") {
+      changeType = "structural";
+      priority = d.item.kind === "D" ? 7 : 6; // Prioritize deletions
+    } else if (d.item.kind === "E") {
+      // Check if this is changing object structure or just values
+      const itemLhsType = typeof d.item.lhs;
+      const itemRhsType = typeof d.item.rhs;
+      
+      if ((itemLhsType === 'object' && itemRhsType !== 'object') || 
+          (itemLhsType !== 'object' && itemRhsType === 'object')) {
+        // Changing between object and non-object is structural
+        changeType = "structural";
+        priority = 5;
+      } else {
+        // Simple value changes within arrays
+        changeType = "value";
+        priority = 2;
+      }
+    }
+  }
+  // Value edits - default
+  else if (d.kind === "E") {
+    // Special case: if changing between different types, it's more important
+    const lhsType = typeof d.lhs;
+    const rhsType = typeof d.rhs;
+    
+    if (lhsType !== rhsType) {
+      priority = 4; // Type changes are relatively important
+      // If changing between object and primitive, it's structural
+      if ((lhsType === 'object' && rhsType !== 'object') || 
+          (lhsType !== 'object' && rhsType === 'object')) {
+        changeType = "structural";
+        priority = 5;
+      }
+    } else {
+      // Simple value changes (same type)
+      changeType = "value";
+      priority = lhsType === 'number' ? 1 : 2; // Numeric changes lower priority
+    }
+  }
+  
+  // Add properties to the original diff object
+  d.severity = severity;
+  d.changeType = changeType;
+  d.priority = priority;
+  d.stringPath = d.path ? d.path.join(".") : ""; // Add string path for easier display
+  
   return d; // Return the modified original diff object
 }
 

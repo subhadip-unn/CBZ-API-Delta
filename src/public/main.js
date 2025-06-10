@@ -445,29 +445,266 @@ ${JSON.stringify(job.headersUsed, null, 2)}
     `;
     card.insertAdjacentHTML("beforeend", requestDetailsHTML);
 
-    // --- Human-readable diff summary ---
+    // --- Organized and collapsible diff display ---
     if (rec.diffs && rec.diffs.length > 0) {
-      const summaryList = document.createElement('ul');
-      summaryList.style.cssText = 'list-style:disc inside; margin:10px 0 0 0; padding:0 0 0 28px; font-size:14px; color:#222;';
-      rec.diffs.forEach(diff => {
-        let msg = '';
+      // Group diffs by change type and sort by priority (highest to lowest)
+      const structuralDiffs = rec.diffs
+        .filter(diff => diff.changeType === 'structural')
+        .sort((a, b) => (b.priority || 1) - (a.priority || 1)); // Sort by priority, highest first
+      
+      const valueDiffs = rec.diffs
+        .filter(diff => diff.changeType === 'value')
+        .sort((a, b) => (b.priority || 1) - (a.priority || 1)); // Sort by priority, highest first
+      
+      const diffContainer = document.createElement('div');
+      diffContainer.className = 'diff-container';
+      diffContainer.style.cssText = 'margin-top:15px;';
+      
+      // Extract critical changes (missing fields, etc.) - priority >= 8
+      const criticalDiffs = structuralDiffs.filter(d => d.priority >= 8);
+      
+      // Helper function to create a readable path tooltip
+      const createReadablePathTooltip = (path, diff) => {
+        if (!path || !Array.isArray(path) || path.length === 0) return '';
+        
+        // Create a readable description of the path
+        let parts = [];
+        let currentPath = [];
+        let isArrayIndex = false;
+        
+        for (let i = 0; i < path.length; i++) {
+          const part = path[i];
+          currentPath.push(part);
+          
+          if (typeof part === 'number') {
+            // This is an array index - get its parent array name
+            const arrayName = path[i-1];
+            parts.push(`${arrayName}[${part}]`);
+            isArrayIndex = true;
+          } else if (isArrayIndex) {
+            // This is a property after an array index
+            parts.push(`└─ ${part}`);
+            isArrayIndex = false;
+          } else {
+            // Regular property
+            parts.push(part);
+          }
+        }
+        
+        // Add value information if available
+        let valueInfo = '';
+        if (diff.kind === 'D' && diff.lhs !== undefined) {
+          // For deletions, show the value that was deleted
+          if (typeof diff.lhs === 'object') {
+            valueInfo = '\n\nDeleted value: ' + JSON.stringify(diff.lhs, null, 2);
+          } else {
+            valueInfo = '\n\nDeleted value: ' + diff.lhs;
+          }
+        } else if (diff.kind === 'E') {
+          // For edits, show before and after
+          valueInfo = '\n\nBefore: ' + diff.lhs + '\nAfter: ' + diff.rhs;
+        }
+        
+        return parts.join('\n') + valueInfo;
+      };
+      
+      // Helper function to format a diff message
+      const formatDiffMessage = (diff) => {
+        // Determine severity color and icon
         let sevColor = diff.severity === 'Error' ? '#e74c3c' : diff.severity === 'Warning' ? '#f39c12' : '#3498db';
         let icon = diff.severity === 'Error' ? '❌' : diff.severity === 'Warning' ? '⚠️' : 'ℹ️';
-        let pathStr = Array.isArray(diff.path) ? diff.path.join('.') : diff.path;
-        if (diff.kind === 'D') {
-          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> was <b>removed</b> from <b>Staging</b>.`;
-        } else if (diff.kind === 'N') {
-          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> was <b>added</b> in <b>Staging</b>.`;
-        } else if (diff.kind === 'E') {
-          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> changed: <span style='color:#b30000;'>${JSON.stringify(diff.lhs)}</span> → <span style='color:#006b21;'>${JSON.stringify(diff.rhs)}</span>`;
-        } else if (diff.kind === 'A') {
-          msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> array changed.`;
+        let pathStr = diff.stringPath || (Array.isArray(diff.path) ? diff.path.join('.') : diff.path);
+        
+        // Create a tooltip to help read the path
+        const tooltip = createReadablePathTooltip(diff.path, diff);
+        
+        // Check if this is a critical change (priority >= 8)
+        const isCritical = diff.priority >= 8;
+        
+        // Create the message differently based on change type
+        let msg = '';
+        let pathElement = '';
+        
+        // Common path element with tooltip
+        if (tooltip) {
+          pathElement = `<span style='color:${sevColor}; font-weight:600; text-decoration:underline dotted; cursor:help;' title="${tooltip}">${pathStr}</span>`;
         } else {
+          pathElement = `<span style='color:${sevColor}; font-weight:600;'>${pathStr}</span>`;
+        }
+        
+        if (diff.kind === 'D') {
+          // Field deletion
+          msg = `${icon} ${pathElement} was <b>removed</b> from <b>Staging</b>.`;
+        } else if (diff.kind === 'N') {
+          // Field addition
+          msg = `${icon} ${pathElement} was <b>added</b> in <b>Staging</b>.`;
+        } else if (diff.kind === 'E') {
+          // Value change
+          msg = `${icon} ${pathElement} changed: <span style='color:#b30000;'>${JSON.stringify(diff.lhs)}</span> → <span style='color:#006b21;'>${JSON.stringify(diff.rhs)}</span>`;
+        } else if (diff.kind === 'A') {
+          // Array change
+          if (diff.item && diff.item.kind === 'D') {
+            // Check if there's detailed info about what was removed
+            let removedContent = '';
+            
+            if (diff.item.lhs && typeof diff.item.lhs === 'object') {
+              // Try to identify the key objects in the removed element
+              const keys = Object.keys(diff.item.lhs);
+              if (keys.length > 0) {
+                if (keys.includes('adDetail')) {
+                  // Special handling for adDetail which is particularly important
+                  removedContent = ` containing <b>adDetail</b> object`;
+                  diff.priority = 10; // Elevate priority for adDetail removal
+                } else {
+                  // Show first key as identifier of what was removed
+                  removedContent = ` containing <b>${keys[0]}</b>`;
+                }
+              }
+            }
+            
+            msg = `${icon} ${pathElement} array element${removedContent} was <b>removed</b>.`;
+          } else if (diff.item && diff.item.kind === 'N') {
+            // Similar enhanced reporting for added elements
+            let addedContent = '';
+            
+            if (diff.item.rhs && typeof diff.item.rhs === 'object') {
+              const keys = Object.keys(diff.item.rhs);
+              if (keys.length > 0) {
+                if (keys.includes('adDetail')) {
+                  addedContent = ` containing <b>adDetail</b> object`;
+                } else {
+                  addedContent = ` containing <b>${keys[0]}</b>`;
+                }
+              }
+            }
+            
+            msg = `${icon} ${pathElement} array element${addedContent} was <b>added</b>.`;
+          } else {
+            msg = `${icon} ${pathElement} array changed.`;
+          }
+        } else {
+          // Other change
           msg = `${icon} <span style='color:${sevColor}; font-weight:600;'>${pathStr}</span> changed.`;
         }
-        summaryList.innerHTML += `<li style='margin-bottom:4px;'>${msg}</li>`;
-      });
-      card.appendChild(summaryList);
+        
+        // Add special highlighting for critical changes
+        if (isCritical) {
+          return `<div style="background-color:rgba(231,76,60,0.08); padding:5px 8px; border-left:3px solid #e74c3c; margin-left:-10px;">
+            ${msg}
+          </div>`;
+        }
+        
+        return msg;
+      };
+      
+      // Helper function to create collapsible section
+      const createCollapsibleSection = (title, diffs, isExpanded, importance) => {
+        const section = document.createElement('div');
+        section.className = 'diff-section';
+        section.style.cssText = 'margin-bottom:15px; border:1px solid #e1e4e8; border-radius:6px; overflow:hidden;';
+        
+        // Header with count badge and toggle button
+        const header = document.createElement('div');
+        header.className = 'diff-section-header';
+        header.style.cssText = `
+          display:flex; 
+          justify-content:space-between; 
+          align-items:center; 
+          padding:10px 15px; 
+          background:${importance === 'high' ? '#fef5f5' : '#f6f8fa'}; 
+          border-bottom:1px solid #e1e4e8; 
+          cursor:pointer;
+        `;
+        
+        const badge = `<span style="background:${importance === 'high' ? '#e74c3c' : '#3498db'}; color:white; padding:2px 8px; border-radius:10px; font-size:12px; margin-left:10px;">${diffs.length}</span>`;
+        header.innerHTML = `
+          <div style="font-weight:600; font-size:15px; display:flex; align-items:center;">
+            ${title} ${badge}
+          </div>
+          <div class="toggle-icon" style="font-size:18px; transition:transform 0.3s;">${isExpanded ? '▾' : '▸'}</div>
+        `;
+        
+        // Content container
+        const content = document.createElement('div');
+        content.className = 'diff-section-content';
+        content.style.cssText = `
+          height:${isExpanded ? 'auto' : '0px'}; 
+          overflow:hidden; 
+          transition:height 0.3s ease;
+        `;
+        
+        // Diff list
+        if (diffs.length > 0) {
+          const list = document.createElement('ul');
+          list.style.cssText = 'list-style:disc inside; margin:0; padding:15px 15px 15px 28px; font-size:14px; color:#222;';
+          
+          diffs.forEach(diff => {
+            const item = document.createElement('li');
+            item.style.cssText = 'margin-bottom:6px; line-height:1.4;';
+            item.innerHTML = formatDiffMessage(diff);
+            list.appendChild(item);
+          });
+          
+          content.appendChild(list);
+        } else {
+          content.innerHTML = '<div style="padding:15px; color:#666; font-style:italic;">No changes detected</div>';
+        }
+        
+        // Toggle functionality
+        header.addEventListener('click', () => {
+          const isCurrentlyExpanded = content.style.height !== '0px';
+          content.style.height = isCurrentlyExpanded ? '0px' : 'auto';
+          header.querySelector('.toggle-icon').textContent = isCurrentlyExpanded ? '▸' : '▾';
+        });
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        return section;
+      };
+      
+      // If we have critical changes (priority >= 8), create special section for them
+      if (criticalDiffs.length > 0) {
+        const criticalSection = createCollapsibleSection(
+          '⚠️ Critical Changes (Missing Fields)', 
+          criticalDiffs, 
+          true, // Always expanded by default
+          'critical' // Critical styling
+        );
+        criticalSection.style.cssText = 'margin-bottom:15px; border:2px solid #e74c3c; border-radius:6px; overflow:hidden; box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);';
+        diffContainer.appendChild(criticalSection);
+      }
+      
+      // Create the structural changes section (collapsed by default)
+      const structuralSection = createCollapsibleSection(
+        '🔍 Structural Changes (Keys Added/Removed)', 
+        criticalDiffs.length > 0 ? structuralDiffs.filter(d => d.priority < 8) : structuralDiffs, 
+        false, // Collapsed by default
+        'high' // High importance styling
+      );
+      diffContainer.appendChild(structuralSection);
+      
+      // Create the value changes section (collapsed by default)
+      const valueSection = createCollapsibleSection(
+        '📊 Value Changes', 
+        valueDiffs, 
+        false, // Collapsed by default
+        'normal'
+      );
+      diffContainer.appendChild(valueSection);
+      
+      // Add a summary banner if there are many diffs
+      if (rec.diffs.length > 10) {
+        const summaryBanner = document.createElement('div');
+        summaryBanner.style.cssText = 'margin:0 0 15px 0; padding:10px 15px; background:#f0f7fb; border-left:5px solid #3498db; font-size:14px; color:#2c3e50;';
+        summaryBanner.innerHTML = `
+          <strong>Large comparison:</strong> ${rec.diffs.length} differences found 
+          (${structuralDiffs.length} structural, ${valueDiffs.length} value changes).
+          <span style="font-style:italic; color:#666; margin-left:5px;">Click sections to expand/collapse.</span>
+        `;
+        diffContainer.insertBefore(summaryBanner, diffContainer.firstChild);
+      }
+      
+      card.appendChild(diffContainer);
     }
 
     // Headers are now displayed in the job summary section, so we don't need individual header buttons
