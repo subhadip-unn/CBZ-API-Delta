@@ -533,8 +533,36 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         }
         
         if (diff.kind === 'D') {
-          // Field deletion
-          msg = `${icon} ${pathElement} was <b>removed</b> from <b>Staging</b>.`;
+          // Field deletion - add more context about what was removed
+          let fieldDescription = '';
+          
+          // Check if we can extract the field name and value
+          if (diff.path && diff.path.length > 0) {
+            // Get the last part of the path (the actual field name)
+            const fieldName = diff.path[diff.path.length - 1];
+            
+            // Add value if available
+            if (diff.lhs !== undefined) {
+              if (typeof diff.lhs === 'object') {
+                // For objects, show type or first few keys
+                if (Array.isArray(diff.lhs)) {
+                  fieldDescription = ` (array with ${diff.lhs.length} elements)`;
+                } else {
+                  const keys = Object.keys(diff.lhs);
+                  if (keys.length > 0) {
+                    fieldDescription = ` (object with keys: ${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '...' : ''})`;
+                  } else {
+                    fieldDescription = ` (empty object)`;
+                  }
+                }
+              } else {
+                // For primitives, show the value
+                fieldDescription = ` = "${diff.lhs}"`;
+              }
+            }
+          }
+          
+          msg = `${icon} ${pathElement}${fieldDescription} was <b>removed</b> from <b>Staging</b>.`;
         } else if (diff.kind === 'N') {
           // Field addition
           msg = `${icon} ${pathElement} was <b>added</b> in <b>Staging</b>.`;
