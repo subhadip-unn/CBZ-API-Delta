@@ -32,7 +32,10 @@ If you want this feature, let your developer know!
 2. **Limited Concurrency**: Uses `p-limit` (max 5 concurrent requests) to drastically speed up HTTP calls while preventing server overload
 3. **All-Jobs Dashboard**: Combines all platform jobs into a single `diff_data.json` with tabbed UI for switching between iOS, Android, Mobile-Web, and Desktop-Web
 4. **Rich Metadata**: Each API comparison includes `cbLoc`, `responseTimeA/B`, `timestampA/B`, and `headersUsedA/B`
-5. **Visual Verification**: Clean UI showing correct totals (e.g., 6 venue IDs × 4 geos = 24 comparisons), with filters for errors/warnings
+5. **Advanced Diff Classification**: Intelligently categorizes changes as structural (API contract) or value (data only), with priority ranking (1-10)
+6. **Three-Tier Diff Display**: Separates changes into Critical Changes, Structural Changes, and Value Changes with collapsible sections
+7. **Interactive Path Tooltips**: Hover over complex JSON paths to see a readable breakdown with actual values
+8. **Visual Verification**: Clean UI showing correct totals (e.g., 6 venue IDs × 4 geos = 24 comparisons), with filters for errors/warnings
 
 ## Setup Instructions
 

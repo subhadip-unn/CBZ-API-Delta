@@ -20,6 +20,9 @@ CBZ API Delta is a tool for comparing API responses between production and stagi
 
 - **Multi-Geo Testing**: Tests APIs across multiple geographic locations using the `cb-loc` header
 - **Limited Concurrency**: Caps concurrent HTTP requests to prevent overloading the API servers
+- **Advanced Diff Classification**: Intelligently categorizes changes as structural (API contract) versus value (data only) with priority ranking
+- **Three-Tier Diff Display**: Separates changes into Critical, Structural, and Value changes with collapsible sections
+- **Interactive Path Tooltips**: Hover over complex JSON paths to see readable breakdowns and actual values
 - **Rich Reporting**: Generates detailed reports with timestamps, response times, and visual diffs
 - **Interactive UI**: Filter, search, and explore differences in a user-friendly interface
 
@@ -199,6 +202,59 @@ This starts an Express server on port 3000.
 - **Endpoint Cards**: Each card shows:
   - Endpoint path with ID
   - Status (✓ Success, ⚠️ Warning, ❌ Error)
+- **Diff Classification**: Differences are organized into three collapsible sections:
+  - **⚠️ Critical Changes**: Highest priority issues (priority ≥8) that may break API consumers
+  - **🔍 Structural Changes**: API contract changes like field additions/removals
+  - **📊 Value Changes**: Data-only differences that don't affect API structure
+
+### Path Tooltip System
+
+Complex JSON paths are now enhanced with interactive tooltips:
+
+1. **Hover over any path** (like `typeMatches.3.seriesMatches.2.seriesAdWrapper.matches.1.matchInfo.currBatTeamId`) to see:
+   - A hierarchical tree view of the path
+   - Array indices clearly marked (e.g., `seriesMatches[3]`)
+   - The value that was changed or removed
+
+2. **Descriptive Messages**: All changes include detailed descriptions:
+   - Field removals show what type of data was removed (e.g., `wickets = "2"` or `(object with keys: id, name)`) 
+   - Array element changes indicate what objects they contained (e.g., `array element containing adDetail was removed`)
+
+## Understanding Diff Classification
+
+The tool now uses an advanced classification system to help you identify critical changes:
+
+### Change Types
+
+- **Structural Changes**: Changes that affect the API contract
+  - Field/property additions (`N` kind)
+  - Field/property deletions (`D` kind)
+  - Array element additions/removals that affect structure
+  - Type changes between object and primitive types
+
+- **Value Changes**: Changes that only affect data values
+  - Field value edits that don't change structure
+  - Array value changes that don't add/remove elements
+  - Numeric value changes
+
+### Priority System
+
+Changes are ranked by priority (1-10):
+
+| Priority | Change Type | Description |
+|---------|------------|-------------|
+| 10 | Critical Structural | Field deletions, especially important objects (like `adDetail`) |
+| 8-9 | High Structural | Field additions, major type changes |
+| 5-7 | Medium Structural | Array element additions/removals, object↔primitive conversions |
+| 2-4 | Low Structural | Minor type changes |
+| 1 | Value | Simple data value changes (especially numeric) |
+
+### Testing Best Practices
+
+1. **Focus on Critical Changes First**: Always expand and review the Critical Changes section first
+2. **Check for Missing Fields**: Pay special attention to field deletions (priority 10)
+3. **Use Tooltips**: Hover over complex paths to understand the exact location of changes
+4. **Examine Context**: For array changes, note which objects were added/removed
   - Geo location and response times
   - Expandable sections for:
     - Full request URLs
