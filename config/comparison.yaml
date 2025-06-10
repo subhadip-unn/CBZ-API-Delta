@@ -1,21 +1,20 @@
 # config/comparison.yaml
 
 jobs:
-  # Quick test job - only first ID, first geo location
-  - name: "Quick Test: iOS Prod v1 vs Stg v2"  
+  - name: "Quick Test: iOS Stg v2 vs Prod v1"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     quickMode: true
-    endpointsToRun:
-      - "matches-live-v1"
-      - "matches-recent-v1"
-      - "matches-upcoming-v1"
-      - "matches-current-v1"
-      - "matches-live-v2"
-      - "matches-recent-v2"
-      - "matches-upcoming-v2"
-      - "matches-current-v2"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      - endpointA: "matches-recent-v1"
+        endpointB: "matches-recent-v2"
+      - endpointA: "matches-upcoming-v1"
+        endpointB: "matches-upcoming-v2"
+      - endpointA: "matches-current-v1"
+        endpointB: "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -23,19 +22,19 @@ jobs:
       retries: 1
       delayMs: 1000
 
-  - name: "iOS: Prod v1 vs Stg v2 (match endpoints)"
+  - name: "iOS: Stg v2 vs Prod v1 (explicit pairs)"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
-    endpointsToRun:
-      - "matches-live-v1"
-      - "matches-recent-v1"
-      - "matches-upcoming-v1"
-      - "matches-current-v1"
-      - "matches-live-v2"
-      - "matches-recent-v2"
-      - "matches-upcoming-v2"
-      - "matches-current-v2"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      - endpointA: "matches-recent-v1"
+        endpointB: "matches-recent-v2"
+      - endpointA: "matches-upcoming-v1"
+        endpointB: "matches-upcoming-v2"
+      - endpointA: "matches-current-v1"
+        endpointB: "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -43,19 +42,19 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Android: Prod v1 vs Stg v2 (match endpoints)"
+  - name: "Android: Stg v2 vs Prod v1 (explicit pairs)"
     platform: "a"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
-    endpointsToRun:
-      - "matches-live-v1"
-      - "matches-recent-v1"
-      - "matches-upcoming-v1"
-      - "matches-current-v1"
-      - "matches-live-v2"
-      - "matches-recent-v2"
-      - "matches-upcoming-v2"
-      - "matches-current-v2"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      - endpointA: "matches-recent-v1"
+        endpointB: "matches-recent-v2"
+      - endpointA: "matches-upcoming-v1"
+        endpointB: "matches-upcoming-v2"
+      - endpointA: "matches-current-v1"
+        endpointB: "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -63,19 +62,19 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Mobile-Web: Prod v1 vs Stg v2 (match endpoints)"
+  - name: "Mobile-Web: Stg v2 vs Prod v1 (explicit pairs)"
     platform: "m"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
-    endpointsToRun:
-      - "matches-live-v1"
-      - "matches-recent-v1"
-      - "matches-upcoming-v1"
-      - "matches-current-v1"
-      - "matches-live-v2"
-      - "matches-recent-v2"
-      - "matches-upcoming-v2"
-      - "matches-current-v2"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      - endpointA: "matches-recent-v1"
+        endpointB: "matches-recent-v2"
+      - endpointA: "matches-upcoming-v1"
+        endpointB: "matches-upcoming-v2"
+      - endpointA: "matches-current-v1"
+        endpointB: "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -83,22 +82,23 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Desktop-Web: Prod v1 vs Stg v2 (match endpoints)"
+  - name: "Desktop-Web: Stg v2 vs Prod v1 (explicit pairs)"
     platform: "w"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
-    endpointsToRun:
-      - "matches-live-v1"
-      - "matches-recent-v1"
-      - "matches-upcoming-v1"
-      - "matches-current-v1"
-      - "matches-live-v2"
-      - "matches-recent-v2"
-      - "matches-upcoming-v2"
-      - "matches-current-v2"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      - endpointA: "matches-recent-v1"
+        endpointB: "matches-recent-v2"
+      - endpointA: "matches-upcoming-v1"
+        endpointB: "matches-upcoming-v2"
+      - endpointA: "matches-current-v1"
+        endpointB: "matches-current-v2"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
     retryPolicy:
       retries: 2
       delayMs: 2000
+

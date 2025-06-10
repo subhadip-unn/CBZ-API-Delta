@@ -49,7 +49,39 @@ cd CBZ-API-Delta
 npm install
 ```
 
-3. Run API comparison:
+3. Configure your comparison jobs:
+
+- Edit `config/endpoints.yaml` to define all endpoints (by key, platform, and version)
+- Edit `config/comparison.yaml` to define jobs using either:
+  - `endpointPairs`: Explicitly pair any two endpoints (recommended)
+  - `endpointsToRun`: Compare the same endpoint on both sides (legacy)
+
+### Example: Compare prod v1 vs stg v2
+```yaml
+jobs:
+  - name: "iOS: Stg v2 vs Prod v1"
+    platform: "i"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      # ...
+```
+
+### Example: Compare prod v1 vs stg v1 (legacy)
+```yaml
+jobs:
+  - name: "iOS: Prod v1 vs Stg v1"
+    platform: "i"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    endpointsToRun:
+      - matches-live-v1
+      - matches-recent-v1
+```
+
+4. Run API comparison:
 
 ```bash
 npm run compare

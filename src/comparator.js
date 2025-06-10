@@ -42,12 +42,26 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
   const concurrencyLimit = process.env.CONCURRENCY_LIMIT ? parseInt(process.env.CONCURRENCY_LIMIT) : 5;
   const limit = pLimit(concurrencyLimit);        // max N parallel comparisons
 
-  // 1) Filter endpoints for this platform
-  let platformEndpoints = endpointsDef.filter(e => e.platform === platform);
-  if (Array.isArray(jobConfig.endpointsToRun) && jobConfig.endpointsToRun.length > 0) {
-    platformEndpoints = platformEndpoints.filter(e =>
-      jobConfig.endpointsToRun.includes(e.key)
-    );
+  let endpointPairs = [];
+  if (Array.isArray(jobConfig.endpointPairs) && jobConfig.endpointPairs.length > 0) {
+    // Use explicit pairs: [{endpointA, endpointB}, ...]
+    for (const pair of jobConfig.endpointPairs) {
+      const epA = endpointsDef.find(e => e.key === pair.endpointA && e.platform === platform);
+      const epB = endpointsDef.find(e => e.key === pair.endpointB && e.platform === platform);
+      if (epA && epB) {
+        endpointPairs.push({ epA, epB });
+      }
+    }
+  } else {
+    // Legacy: endpointsToRun (compare same endpoint on both sides)
+    let platformEndpoints = endpointsDef.filter(e => e.platform === platform);
+    if (Array.isArray(jobConfig.endpointsToRun) && jobConfig.endpointsToRun.length > 0) {
+      platformEndpoints = platformEndpoints.filter(e =>
+        jobConfig.endpointsToRun.includes(e.key)
+      );
+    }
+    // Use the same endpoint for both sides
+    endpointPairs = platformEndpoints.map(e => ({ epA: e, epB: e }));
   }
 
   // Check if we're in quick mode
@@ -87,8 +101,8 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
   
   // Calculate total number of tasks for progress bar
   let totalTasks = 0;
-  for (const ep of platformEndpoints) {
-    const idCategory = ep.idCategory;
+  for (const pair of endpointPairs) {
+    const idCategory = pair.epA.idCategory || pair.epB.idCategory; // Use any present
     const subsCount = idCategory ? (isQuick ? 1 : (idsAll[idCategory] || []).length) : 1;
     const geosCount = isQuick ? 1 : geoList.length;
     totalTasks += subsCount * geosCount;
@@ -125,11 +139,12 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
   }
 
 
-  // 3) Loop endpoints → substitutions → geos
-  for (const ep of platformEndpoints) {
-    const key = ep.key;
-    const rawPath = ep.path;
-    const idCategory = ep.idCategory; // e.g. "teamId" or null
+  // 3) Loop endpoint pairs → substitutions → geos
+  for (const pair of endpointPairs) {
+    const key = `${pair.epA.key}__VS__${pair.epB.key}`;
+    const rawPathA = pair.epA.path;
+    const rawPathB = pair.epB.path;
+    const idCategory = pair.epA.idCategory || pair.epB.idCategory; // Use any present
 
     // 3.a) Build substitutions
     let substitutions = [{}];
@@ -145,8 +160,8 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
       for (const loc of geoList) {
         tasks.push(limit(async () => {
           // Build URLs
-          const urlA = buildUrl(jobConfig.baseA, platform, rawPath, sub);
-          const urlB = buildUrl(jobConfig.baseB, platform, rawPath, sub);
+          const urlA = buildUrl(jobConfig.baseA, platform, rawPathA, sub);
+          const urlB = buildUrl(jobConfig.baseB, platform, rawPathB, sub);
 
           // Build per-request headers
           const hdrs = { ...headersTempl, "cb-loc": loc };
@@ -188,13 +203,13 @@ async function runJob(jobConfig, headersAll, idsAll, endpointsDef) {
               ? `A failed (loc=${loc}): ${respA.error}`
               : `B failed (loc=${loc}): ${respB.error}`;
             allRecords.push(rec);
-          completedTasks++;
-          // Update progress based on whether we're using spinner or progress bar
-          if (totalTasks === 1) {
-            // Single task uses spinner - nothing to update
-          } else if (this.progressBar) {
-            this.progressBar.update(completedTasks);
-          }
+            completedTasks++;
+            // Update progress based on whether we're using spinner or progress bar
+            if (totalTasks === 1) {
+              // Single task uses spinner - nothing to update
+            } else if (this.progressBar) {
+              this.progressBar.update(completedTasks);
+            }
             return;
           }
 

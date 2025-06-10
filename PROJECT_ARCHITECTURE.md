@@ -59,6 +59,67 @@ The configuration layer consists of multiple config files that define what to co
      ...
    }
    ```
+2. **endpoints.yaml**: Defines all API endpoints by key, platform, and path. Keys can represent different versions (e.g., `matches-live-v1`, `matches-live-v2`).
+   ```yaml
+   - key: "matches-live-v1"
+     platform: "i"
+     path: "matches/v1/live"
+     idCategory: null
+   - key: "matches-live-v2"
+     platform: "i"
+     path: "matches/v2/live"
+     idCategory: null
+   # ...
+   ```
+3. **comparison.yaml**: Defines comparison jobs. Each job can use either:
+   - `endpointPairs`: Explicitly pair any two endpoints (e.g., v1 vs v2, stg vs prod, etc.)
+   - `endpointsToRun`: (Legacy) Compare the same endpoint on both sides.
+   
+   Example (explicit pairs):
+   ```yaml
+   jobs:
+     - name: "iOS: Stg v2 vs Prod v1"
+       platform: "i"
+       baseA: "https://apiserver.cricbuzz.com"
+       baseB: "http://api.cricbuzz.stg"
+       endpointPairs:
+         - endpointA: "matches-live-v1"
+           endpointB: "matches-live-v2"
+         # ...
+   ```
+   Example (legacy, same endpoint both sides):
+   ```yaml
+   jobs:
+     - name: "iOS: Prod v1 vs Stg v1"
+       platform: "i"
+       baseA: "https://apiserver.cricbuzz.com"
+       baseB: "http://api.cricbuzz.stg"
+       endpointsToRun:
+         - matches-live-v1
+         - matches-recent-v1
+   ```
+
+### 4.2. Comparison Logic
+
+- The backend reads `comparison.yaml` and determines for each job:
+  - If `endpointPairs` is present, it compares each pair (A vs B, can be any version or environment).
+  - If only `endpointsToRun` is present, it compares the same endpoint on both sides.
+- The engine builds URLs using `baseA` and `baseB` with endpoint paths and substitutions.
+- For each pair, it fetches responses, compares, and records diffs, timings, and metadata.
+
+### 4.3. Flexible Architecture
+
+- **Any-to-any comparison:** You can compare prod v1 vs stg v2, prod v2 vs stg v1, stg v1 vs stg v2, etc., by configuring `endpointPairs` and base URLs.
+- **No code changes needed:** All behavior is config-driven. Add or change pairs in YAML to suit any release/test scenario.
+- **Backward compatible:** Legacy jobs using `endpointsToRun` still work for same-key comparisons.
+
+### 4.4. Example Workflow
+
+1. Edit `endpoints.yaml` to define all endpoints and versions for each platform.
+2. Edit `comparison.yaml` to define jobs and explicit endpoint pairs to compare.
+3. Run the tool (`npm run compare`).
+4. Review generated reports for diffs, timings, and QA sign-off.
+
 
 2. **ids.json**: Test IDs for substitution in endpoint paths
    ```json

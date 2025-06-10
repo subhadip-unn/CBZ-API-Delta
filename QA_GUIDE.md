@@ -95,102 +95,57 @@ Customize HTTP headers per platform:
 {
   "i": {
     "accept": "application/json",
-    "cb-loc": ["IN", "US", "CA", "AE"],
-    "user-agent": "Cricket/14.1 CFNetwork/1120 Darwin/19.0.0"
-  },
-  "a": {
-    "accept": "application/json",
-    "cb-loc": ["IN", "US", "CA", "AE"],
-    "user-agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36"
-  }
-}
-```
-
-- Each platform has its own set of headers
-- `cb-loc` is an array of locations to test
-- You can add/modify headers as needed
-
-### 3. Endpoints (config/endpoints.yaml)
-
-Define the endpoints to test:
-
 ```yaml
-- key: "venue-info"
-  platform: "i"  # iOS
-  path: "/venues/v1/{venueId}"
-  idCategory: "venueId"
-
-- key: "venue-matches"
-  platform: "m"  # Mobile web
-  path: "/venues/v1/{venueId}/matches"
-  idCategory: "venueId"
+- key: "matches-live-v1"
+  platform: "i"
+  path: "matches/v1/live"
+  idCategory: null
+- key: "matches-live-v2"
+  platform: "i"
+  path: "matches/v2/live"
+  idCategory: null
 ```
 
-- `key` is a unique identifier for the endpoint
-- `platform` is one of: `i` (iOS), `a` (Android), `m` (Mobile Web), `w` (Desktop Web)
-- `path` is the API path, with placeholders in `{curlyBraces}`
-- `idCategory` references the ID category in ids.json
+### Editing comparison.yaml
 
-### 4. Jobs (config/comparison.yaml)
+You can now compare any two endpoints, of any version or environment, by configuring either:
+- `endpointPairs` (recommended): Explicitly pairs any two endpoints (e.g., prod v1 vs stg v2, stg v1 vs prod v2, etc.)
+- `endpointsToRun` (legacy): Compares the same endpoint (by key) on both sides
 
-Define the comparison jobs:
-
+#### Example: Compare prod v1 vs stg v2
 ```yaml
 jobs:
-  # Quick test with minimal IDs/geos
-  - name: "Quick Test: iOS Prod vs Stg"
+  - name: "iOS: Stg v2 vs Prod v1"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
-    quickMode: true
-    endpointsToRun:
-      - "venue-info"
-    ignorePaths:
-      - "meta.timestamp"
-    retryPolicy:
-      retries: 1
-      delayMs: 1000
-
-  # Full test for iOS
-  - name: "iOS: Prod vs Stg (venue endpoints)"
-    platform: "i"
-    baseA: "https://apiserver.cricbuzz.com"
-    baseB: "https://api.cricbuzz.stg"
-    endpointsToRun:
-      - "venue-info"
-      - "venue-matches"
-    ignorePaths:
-      - "meta.timestamp"
-      - "data.generatedId"
-    retryPolicy:
-      retries: 2
-      delayMs: 2000
+    baseB: "http://api.cricbuzz.stg"
+    endpointPairs:
+      - endpointA: "matches-live-v1"
+        endpointB: "matches-live-v2"
+      # ...
 ```
 
-- `name` is a descriptive name for the job
-- `platform` matches platforms in endpoints.yaml
-- `baseA` and `baseB` are the API base URLs to compare
-- `quickMode: true` limits to first ID and first geo-location (for faster testing)
-- `endpointsToRun` limits which endpoints to test
-- `ignorePaths` ignores specific JSON paths that always differ
-- `retryPolicy` configures retry attempts and delay
+#### Example: Compare prod v1 vs stg v1 (legacy)
+```yaml
+jobs:
+  - name: "iOS: Prod v1 vs Stg v1"
+    platform: "i"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    endpointsToRun:
+      - matches-live-v1
+      - matches-recent-v1
+```
+
+- You can mix and match environments (prod/stg), versions (v1/v2), and platforms (i/a/m/w) as needed.
+- For each job, set `baseA` and `baseB` to the desired environments, and configure the endpoint keys accordingly.
 
 ## Running Comparisons
 
-### Quick Test (Fast)
-
-To run a quick smoke test (only first ID and first geo):
-
-```bash
-npm run compare
-```
-
-When prompted, enter your name as the QA Engineer. This will execute the comparison jobs, showing a progress bar in the terminal.
-
-### Understanding the Progress Bar
-
-```
-▶ Running job: Quick Test: iOS Prod vs Stg
+1. Edit `endpoints.yaml` and `comparison.yaml` as needed for your test scenario.
+2. Run the comparison:
+   ```bash
+   npm run compare
 [#########--------------] 45% | 6/14 | ETA: 00:00:08 | Quick Test
 ```
 
