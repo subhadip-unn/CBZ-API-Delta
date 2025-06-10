@@ -3,12 +3,34 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const auth = require('basic-auth');
 
 const app = express();
 const PORT = 3000;
 
 // Disable ETag generation to prevent 304 Not Modified responses
 app.disable("etag");
+
+// Add Basic Authentication
+const USERNAME = 'cbzqa';
+const PASSWORD = 'cbz2025';
+
+// Authentication middleware
+const authenticate = (req, res, next) => {
+  const credentials = auth(req);
+  
+  // Check credentials
+  if (!credentials || credentials.name !== USERNAME || credentials.pass !== PASSWORD) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="CBZ API Delta Reports"');
+    return res.status(401).send('Authentication required.');
+  }
+  
+  // Proceed to the next middleware if authentication successful
+  next();
+};
+
+// Apply authentication to all routes
+app.use(authenticate);
 
 /**
  * getAllReportFolders()
@@ -199,7 +221,8 @@ app.get("/diff_data.json", (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`CBZ API Delta UI running at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`CBZ API Delta UI running at http://0.0.0.0:${PORT}`);
+  console.log(`VPN access: http://172.16.253.6:${PORT}/reports`);
   console.log(`Browse http://localhost:${PORT}/reports to select a report`);
 });

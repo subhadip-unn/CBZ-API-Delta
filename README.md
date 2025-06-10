@@ -130,6 +130,84 @@ CONCURRENCY_LIMIT=4 npm run compare
 rm -rf reports/2025-*
 ```
 
+## Docker Deployment (For Teams)
+
+You can deploy the CBZ API Delta tool using Docker and Nginx to make reports accessible to your entire team over VPN or office network. This setup offers:
+
+- Multiple concurrent reports (current and archived)
+- Authentication to restrict access
+- Persistent access even when your laptop is shut down (if deployed to a server)
+
+### Quick Start with Docker
+
+```bash
+# 1. Create password for authentication (replace with your desired credentials)
+./create-password.sh cbzqa cbz2025
+
+# 2. Start the containers
+docker-compose up -d
+
+# 3. Access the reports
+# Local: http://localhost:80
+# VPN/Office Network: http://<your-vpn-ip>:80
+# Login with credentials from step 1
+```
+
+### Docker Commands
+
+```bash
+# Start all containers
+docker-compose up -d
+
+# View container logs
+docker-compose logs -f
+
+# Stop all containers
+docker-compose down
+
+# Rebuild after changes
+docker-compose up -d --build
+```
+
+### Accessing Reports
+
+- **Current Reports**: http://<your-ip>/reports/
+- **Archived Reports**: http://<your-ip>/archive/
+
+## Docker and Nginx Deployment
+
+For team-wide access and persistent availability, CBZ API Delta can be deployed using Docker and Nginx:
+
+### Quick Start
+
+```bash
+# Set up authentication (first time only)
+./create-password.sh cbzqa cbz2025  # Or choose your own credentials
+
+# Build and start containers
+sudo docker-compose up -d
+
+# Generate new reports
+npm run compare
+
+# Access reports at:
+# - http://localhost/            # From host machine
+# - http://<your-ip>/          # From office network or VPN
+```
+
+### Key Features
+
+- **Authentication**: Basic auth protects reports from unauthorized access
+- **Current/Archive Reports**: View both current and archived reports via separate URLs
+- **Network Access**: Share with team over LAN or VPN using your machine's IP
+- **Persistent Availability**: Reports remain accessible as long as Docker containers are running
+
+### Access URLs
+
+- **Current Reports**: http://<your-ip>/reports/
+- **Archived Reports**: http://<your-ip>/archive/
+- **Note**: Archive view listing works but may show "Report not found" when viewing individual archived reports (see Troubleshooting)
+
 ## Troubleshooting
 
 ### Blank Report or "formatChanges is not a function" Error

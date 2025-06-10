@@ -29,6 +29,12 @@ pids
 *.seed
 *.pid.lock
 
+# Docker related
+.dockerignore
+
+# Nginx password file (contains credentials)
+nginx/passwords/htpasswd
+
 # Coverage directory used by tools like istanbul
 coverage/
 

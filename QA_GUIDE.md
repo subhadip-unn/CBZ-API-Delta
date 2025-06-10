@@ -447,6 +447,102 @@ CONCURRENCY_LIMIT=4 npm run compare
 
 ---
 
+## Sharing Reports with Team (Docker + Nginx Setup)
+
+The CBZ API Delta tool now includes Docker and Nginx configurations that allow you to:
+
+1. Share reports securely with your team over office WiFi/VPN
+2. Make multiple reports available simultaneously (current and archived)
+3. Keep reports accessible even when your laptop is off (if deployed to a server)
+4. Control access with HTTP Basic Authentication
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Basic terminal knowledge
+- Office VPN access (for team members outside the office)
+
+### Setup Instructions
+
+1. **Create Authentication Credentials**
+
+   ```bash
+   # Navigate to the project directory
+   cd /path/to/CBZ-API-Delta
+   
+   # Create a password for accessing reports (replace with your desired credentials)
+   ./create-password.sh cbzqa cbz2025
+   ```
+
+2. **Start the Docker Containers**
+
+   ```bash
+   # Build and start all containers in the background
+   docker-compose up -d
+   ```
+
+3. **Access Reports**
+
+   - From your machine: http://localhost
+   - From team members (VPN): http://<your-vpn-ip> (example: http://172.16.253.6)
+   - Login credentials: username and password from step 1
+
+### Docker Container Architecture
+
+This setup creates the following components:
+
+1. **Main API Delta App** (`api-delta`)
+   - Serves your current/recent reports
+   - Displays at `/reports/` URL
+
+2. **Archive App** (`api-delta-archive`)
+   - Serves older archived reports
+   - Displays at `/archive/` URL
+   
+3. **Nginx Server** (`cbz-api-delta-nginx`)
+   - Handles authentication
+   - Acts as reverse proxy to both Node.js apps
+   - Provides a unified interface
+
+### Tips and Known Limitations
+
+- **Archive Reports**: The archive feature shows a directory listing but may display "Report not found" when attempting to view individual archived reports. This happens because archived folders typically contain only the `diff_data.json` file without the HTML view.
+- **Solution**: For complete archive viewing, ensure each folder in `old_reports/` contains both `diff_data.json` and an `index.html` file. You can copy these files from existing reports.
+- **VPN Access**: Ensure your VPN configuration allows access to ports 80/443 on the host machine.
+- **High-Traffic Usage**: If many team members are accessing reports simultaneously, consider increasing the container resources in `docker-compose.yml`.
+
+### How It Works
+
+```
+User Request → Nginx (Authentication) → Appropriate Node.js Container → Report Display
+```
+
+### Managing Your Reports
+
+- Current reports should be placed in the `/reports` folder
+- Archived reports should be moved to the `/old_reports` folder
+- Both folders are mounted to their respective containers
+
+### Common Tasks
+
+```bash
+# View logs from all containers
+docker-compose logs -f
+
+# View logs for a specific container
+docker-compose logs -f api-delta
+
+# Stop all containers
+docker-compose down
+
+# Restart after making changes
+docker-compose up -d --build
+
+# Change password
+./create-password.sh <new-username> <new-password>
+docker-compose restart nginx
+```
+
 ## Additional Resources
 
 For more detailed information:

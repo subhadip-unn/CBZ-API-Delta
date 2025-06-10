@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  # Main API Delta App
+  api-delta:
+    build: .
+    container_name: cbz-api-delta
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./reports:/app/reports
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - api-delta-network
+
+  # Service for archived reports (optional)
+  api-delta-archive:
+    build: .
+    container_name: cbz-api-delta-archive
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./old_reports:/app/reports
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - api-delta-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cbz-api-delta-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/passwords:/etc/nginx/passwords
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - api-delta
+      - api-delta-archive
+    restart: unless-stopped
+    networks:
+      - api-delta-network
+
+networks:
+  api-delta-network:
+    driver: bridge

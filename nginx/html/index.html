@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CBZ API Delta Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background: #2980b9;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>CBZ API Delta Reports</h1>
+    
+    <div class="card">
+        <h2>Available Report Collections</h2>
+        <p>Select a report collection to view:</p>
+        <p>
+            <a href="/reports/" class="button">Current Reports</a>
+            <a href="/archive/" class="button">Archived Reports</a>
+        </p>
+    </div>
+    
+    <div class="card">
+        <h2>What is CBZ API Delta?</h2>
+        <p>CBZ API Delta is a powerful API comparison tool for testing endpoints across multiple geolocations and platforms, with advanced diff visualization and change classification.</p>
+        <p>Features include:</p>
+        <ul>
+            <li>Multi-geo support (IN, US, CA, AE)</li>
+            <li>Advanced diff classification (structural vs. value changes)</li>
+            <li>Three-tier diff display with priority ranking</li>
+            <li>Interactive path tooltips for better readability</li>
+        </ul>
+    </div>
+</body>
+</html>
