@@ -15,7 +15,7 @@
     "cricket"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "dependencies": {
     "axios": "^0.27.2",
     "basic-auth": "^2.0.1",
