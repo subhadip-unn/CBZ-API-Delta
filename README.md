@@ -1,3 +1,11 @@
+<!--
+  Author: Subhadip Das
+  Email: subhadip.das@cricbuzz.com
+  GitHub: https://github.com/subhadip-unn
+  Created: 2025-06-11
+  Description: Main project README for CBZ API Delta
+-->
+
 # CBZ API Delta
 
 A powerful API comparison tool for testing endpoints across multiple geolocations and platforms, with concurrent API calls and visual diff display.

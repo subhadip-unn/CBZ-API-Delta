@@ -1,4 +1,12 @@
-// src/public/main.js
+/**
+ * CBZ API Delta - Frontend Main JS
+ * Author: Subhadip Das (QA, Cricbuzz Platforms Limited)
+ * Email: subhadip.das@cricbuzz.com
+ * GitHub: https://github.com/subhadip-unn
+ * Created: 2025-06-11
+ * Copyright (c) 2025 Cricbuzz Platforms Limited
+ */
+// main.js
 // Adds formatted diff display using jsondiffpatch and includes error handling
 
 /**
