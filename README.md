@@ -335,4 +335,9 @@ CBZ-API-Delta/
 
 ## License
 
-ISC
+This project is licensed under the **MIT License**.
+
+- Copyright © 2025 Cricbuzz Platforms Limited
+- QA Author: Subhadip Das (<subhadip.das@cricbuzz.com>)
+
+See the [LICENSE](./LICENSE) file for full license text and details.
