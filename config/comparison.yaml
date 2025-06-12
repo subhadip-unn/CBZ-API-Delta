@@ -1,16 +1,59 @@
 # config/comparison.yaml
 
 jobs:
-  - name: "Quick Test: iOS Stg vs Prod"
+  - name: "Quick Test:Android Home Matches Stg vs Prod"
+    platform: "a"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    quickMode: true
+    endpointPairs:
+      - endpointA: "home-matches-v1"
+        endpointB: "home-matches-stg"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 1
+      delayMs: 1000
+
+  - name: "Quick Test:iOS Home Matches Stg vs Prod"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     quickMode: true
     endpointPairs:
-      - endpointA: "venue-details-v1"
-        endpointB: "venue-details-stg"
-      - endpointA: "venue-matches-v1"
-        endpointB: "venue-matches-stg"
+      - endpointA: "home-matches-v1"
+        endpointB: "home-matches-stg"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 1
+      delayMs: 1000
+
+  - name: "Quick Test:Mobile Web Home Matches Stg vs Prod"
+    platform: "m"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    quickMode: true
+    endpointPairs:
+      - endpointA: "home-matches-v1"
+        endpointB: "home-matches-stg"
+    ignorePaths:
+      - "meta.timestamp"
+      - "data.generatedId"
+    retryPolicy:
+      retries: 1
+      delayMs: 1000
+
+  - name: "Quick Test:Desktop Web Home Matches Stg vs Prod"
+    platform: "w"
+    baseA: "https://apiserver.cricbuzz.com"
+    baseB: "http://api.cricbuzz.stg"
+    quickMode: true
+    endpointPairs:
+      - endpointA: "home-matches-v1"
+        endpointB: "home-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"

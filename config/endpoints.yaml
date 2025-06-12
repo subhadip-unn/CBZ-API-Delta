@@ -23,6 +23,47 @@
   path: "venues/v1/{venueId}/matches"
   idCategory: "venueId"
 
+# Home Matches (Quick Test)
+- key: "home-matches-v1"
+  platform: "a"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-stg"
+  platform: "a"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-v1"
+  platform: "i"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-stg"
+  platform: "i"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-v1"
+  platform: "m"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-stg"
+  platform: "m"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-v1"
+  platform: "w"
+  path: "home/v1/matches"
+  idCategory: null
+
+- key: "home-matches-stg"
+  platform: "w"
+  path: "home/v1/matches"
+  idCategory: null
+
 # Mobile Web (m)
 - key: "venue-details-v1"
   platform: "m"
