@@ -906,7 +906,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         align-items: center;
         transition: background-color 0.2s;
       `;
-      monacoDiffBtn.innerHTML = '<span style="margin-right:8px;">🔄</span> Monaco Diff Viewer';
+      monacoDiffBtn.innerHTML = '<span style="margin-right:8px;">🔄</span> DeltaΔ Diff Viewer';
       monacoDiffBtn.onmouseover = () => monacoDiffBtn.style.backgroundColor = '#8e44ad';
       monacoDiffBtn.onmouseout = () => monacoDiffBtn.style.backgroundColor = '#9b59b6';
       
