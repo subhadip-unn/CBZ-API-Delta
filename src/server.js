@@ -232,13 +232,25 @@ app.get("/api/json-diff", (req, res) => {
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
 
-  const { recordId, folder, cbLoc } = req.query;
+  let { recordId, folder, cbLoc } = req.query;
+  let originalRecordId = recordId;
   
   if (!recordId || !folder) {
     return res.status(400).json({ error: "Missing recordId or folder parameters" });
   }
   
-  console.log(`/api/json-diff request: recordId=${recordId}, folder=${folder}, cbLoc=${cbLoc || 'not specified'}`);
+  // Check if recordId contains embedded region information
+  if (recordId.includes('__REGION_')) {
+    const parts = recordId.split('__REGION_');
+    recordId = parts[0]; // Extract the actual endpoint key
+    const embeddedRegion = parts[1];
+    // Only override cbLoc if it wasn't explicitly provided
+    if (!cbLoc) {
+      cbLoc = embeddedRegion;
+    }
+  }
+  
+  console.log(`/api/json-diff request: recordId=${originalRecordId} (parsed to: ${recordId}), folder=${folder}, cbLoc=${cbLoc || 'not specified'}`);
 
   // Check both reports and old_reports directories
   const reportPaths = [
@@ -277,14 +289,29 @@ app.get("/api/json-diff", (req, res) => {
   const allAvailableEndpoints = [];
   const allRegions = [];
   
-  // Debug: Log all available regions in the diff data
-  diffData.forEach(job => {
+  // Debug: Log all available regions and endpoints in the diff data with more details
+  console.log('\n===== DETAILED DIFF DATA ANALYSIS =====');
+  diffData.forEach((job, index) => {
     const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
     if (jobCbLoc && !allRegions.includes(jobCbLoc)) {
       allRegions.push(jobCbLoc);
     }
+    
+    // Log detailed job information
+    console.log(`\nJob #${index + 1} - Name: ${job.jobName || 'unnamed'}, Region: ${jobCbLoc || 'unknown'}`);
+    
+    if (job.endpoints && Array.isArray(job.endpoints)) {
+      console.log(`  Endpoints (${job.endpoints.length}):`);  
+      job.endpoints.forEach((ep, i) => {
+        if (ep.key) {
+          console.log(`    ${i+1}. Key: ${ep.key}, Has Data: ${!!(ep.rawJsonA && ep.rawJsonB)}`);
+        }
+      });
+    }
   });
-  console.log(`Available regions in diff data: ${allRegions.join(', ') || 'none found'}`);
+  console.log(`\nAvailable regions in diff data: ${allRegions.join(', ') || 'none found'}`);
+  console.log(`Requested region: ${cbLoc || 'not specified'}`);
+  console.log('===== END OF DATA ANALYSIS =====\n');
   
   // First pass - try to find an exact match by region and endpoint key
   for (const job of diffData) {

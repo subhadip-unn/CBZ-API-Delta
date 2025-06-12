@@ -85,3 +85,20 @@
   color: #721c24;
   border-radius: 4px;
 }
+
+.endpoint-info {
+  margin: 10px 0;
+  background: #f3f3f3;
+  padding: 10px;
+  border-radius: 5px;
+  border-left: 4px solid #007acc;
+}
+
+.info-row {
+  margin-bottom: 5px;
+}
+
+.region-info {
+  font-weight: 700;
+  color: #007acc;
+}

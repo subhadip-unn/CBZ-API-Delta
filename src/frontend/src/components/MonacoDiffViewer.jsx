@@ -4,8 +4,8 @@ import { DiffEditor } from '@monaco-editor/react';
 const MonacoDiffViewer = ({ recordId, folder, cbLoc }) => {
   // Track which endpoint key and region we're viewing
   const [endpointInfo, setEndpointInfo] = useState({
-    key: recordId,
-    region: cbLoc || 'Unknown Region'
+    key: recordId ? recordId.split('__REGION_')[0] : 'Unknown',
+    region: cbLoc || (recordId && recordId.includes('__REGION_') ? recordId.split('__REGION_')[1] : 'Unknown Region')
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -122,8 +122,8 @@ const MonacoDiffViewer = ({ recordId, folder, cbLoc }) => {
       <div className="monaco-header">
         <h1>Monaco JSON Diff Viewer</h1>
         <div className="endpoint-info">
-          <span><strong>Endpoint:</strong> {endpointInfo.key}</span>
-          {cbLoc && <span><strong>Region:</strong> {cbLoc}</span>}
+          <div className="info-row"><strong>Endpoint:</strong> {endpointInfo.key}</div>
+          <div className="info-row region-info"><strong>Region:</strong> {endpointInfo.region}</div>
         </div>
         <div className="monaco-actions">
           <a href="/reports" className="btn-back">← Back to Reports</a>
