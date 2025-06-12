@@ -1,6 +1,6 @@
 {
   "teamId": [101, 202, 303, 404],
-  "venueId": [31, 80, 11, 154, 50, 380],
+  "venueId": [31, 80, 11, 154, 50],
   "seriesId": [1001, 1002, 1003],
   "squadId": [1, 2, 3],
   "category": ["international", "domestic"],

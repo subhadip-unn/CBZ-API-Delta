@@ -365,10 +365,18 @@ ${JSON.stringify(job.headersUsed, null, 2)}
   cardsContainer.id = `cards-${job.jobName.replace(/\s+/g, "_")}`;
   container.appendChild(cardsContainer);
 
-  // Render each endpoint record as a card
-  job.endpoints.forEach((rec, idx) => {
+  // 3) Render each endpoint record
+  job.endpoints.forEach(rec => {
     const card = document.createElement("div");
     card.className = "endpoint-card";
+    card.dataset.path = rec.path || "";
+    card.dataset.endpoint = rec.endpoint || "";
+
+    // Create a shared button container for all buttons
+    const btnContainer = document.createElement("div");
+    btnContainer.style.display = "flex";
+    btnContainer.style.flexWrap = "wrap";
+    btnContainer.className = "button-container";
 
     // Determine overall severity
     let overallSeverity = "ok";
@@ -518,16 +526,26 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       
       // Helper function to format a diff message
       const formatDiffMessage = (diff) => {
-        // Determine severity color and icon
-        let sevColor = diff.severity === 'Error' ? '#e74c3c' : diff.severity === 'Warning' ? '#f39c12' : '#3498db';
-        let icon = diff.severity === 'Error' ? '❌' : diff.severity === 'Warning' ? '⚠️' : 'ℹ️';
-        let pathStr = diff.stringPath || (Array.isArray(diff.path) ? diff.path.join('.') : diff.path);
+        // Safety check - if diff is undefined or missing key properties
+        if (!diff) {
+          console.warn('Invalid diff object passed to formatDiffMessage');
+          return 'Invalid diff data';
+        }
         
-        // Create a tooltip to help read the path
-        const tooltip = createReadablePathTooltip(diff.path, diff);
+        // Determine severity color and icon with safe defaults
+        const severity = diff.severity || 'Info';
+        let sevColor = severity === 'Error' ? '#e74c3c' : severity === 'Warning' ? '#f39c12' : '#3498db';
+        let icon = severity === 'Error' ? '❌' : severity === 'Warning' ? '⚠️' : 'ℹ️';
+        
+        // Safely handle path - ensure it exists
+        const path = diff.path || [];
+        let pathStr = diff.stringPath || (Array.isArray(path) ? path.join('.') : (path || 'unknown path'));
+        
+        // Create a tooltip only if path exists
+        const tooltip = path ? createReadablePathTooltip(path, diff) : null;
         
         // Check if this is a critical change (priority >= 8)
-        const isCritical = diff.priority >= 8;
+        const isCritical = (diff.priority || 0) >= 8;
         
         // Create the message differently based on change type
         let msg = '';
@@ -537,7 +555,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         if (tooltip) {
           pathElement = `<span style='color:${sevColor}; font-weight:600; text-decoration:underline dotted; cursor:help;' title="${tooltip}">${pathStr}</span>`;
         } else {
-          pathElement = `<span style='color:${sevColor}; font-weight:600;'>${pathStr}</span>`;
+          pathElement = `<span style='color:${sevColor}; font-weight:600;'>${pathStr || 'unknown'}</span>`;
         }
         
         if (diff.kind === 'D') {
@@ -545,9 +563,9 @@ ${JSON.stringify(job.headersUsed, null, 2)}
           let fieldDescription = '';
           
           // Check if we can extract the field name and value
-          if (diff.path && diff.path.length > 0) {
+          if (path && Array.isArray(path) && path.length > 0) {
             // Get the last part of the path (the actual field name)
-            const fieldName = diff.path[diff.path.length - 1];
+            const fieldName = path[path.length - 1];
             
             // Add value if available
             if (diff.lhs !== undefined) {
@@ -583,7 +601,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
             // Check if there's detailed info about what was removed
             let removedContent = '';
             
-            if (diff.item.lhs && typeof diff.item.lhs === 'object') {
+            if (diff.item.lhs && typeof diff.item.lhs === 'object' && diff.item.lhs !== null) {
               // Try to identify the key objects in the removed element
               const keys = Object.keys(diff.item.lhs);
               if (keys.length > 0) {
@@ -603,7 +621,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
             // Similar enhanced reporting for added elements
             let addedContent = '';
             
-            if (diff.item.rhs && typeof diff.item.rhs === 'object') {
+            if (diff.item.rhs && typeof diff.item.rhs === 'object' && diff.item.rhs !== null) {
               const keys = Object.keys(diff.item.rhs);
               if (keys.length > 0) {
                 if (keys.includes('adDetail')) {
@@ -672,12 +690,20 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         // Diff list
         if (diffs.length > 0) {
           const list = document.createElement('ul');
-          list.style.cssText = 'list-style:disc inside; margin:0; padding:15px 15px 15px 28px; font-size:14px; color:#222;';
+          list.style.cssText = 'margin:0; padding:0 0 0 20px; list-style-type:disc;';
           
           diffs.forEach(diff => {
             const item = document.createElement('li');
-            item.style.cssText = 'margin-bottom:6px; line-height:1.4;';
-            item.innerHTML = formatDiffMessage(diff);
+            item.style.cssText = 'margin:10px 0; line-height:1.5; display:flex; align-items:flex-start;';
+            // Add bullet point explicitly and position it relative to text
+            const bullet = document.createElement('span');
+            bullet.innerHTML = '•';
+            bullet.style.cssText = 'margin-right:8px; padding-top:1px;';
+            item.appendChild(bullet);
+            // Wrap content in a div
+            const content = document.createElement('div');
+            content.innerHTML = formatDiffMessage(diff);
+            item.appendChild(content);
             list.appendChild(item);
           });
           
@@ -703,7 +729,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         const criticalSection = createCollapsibleSection(
           '⚠️ Critical Changes (Missing Fields)', 
           criticalDiffs, 
-          true, // Always expanded by default
+          false, // Collapsed by default
           'critical' // Critical styling
         );
         criticalSection.style.cssText = 'margin-bottom:15px; border:2px solid #e74c3c; border-radius:6px; overflow:hidden; box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);';
@@ -749,7 +775,6 @@ ${JSON.stringify(job.headersUsed, null, 2)}
     if (rec.rawJsonA && rec.rawJsonB) {
       // 1) Toggle button
       const toggleBtn = document.createElement("button");
-      toggleBtn.textContent = "Show JSON A vs B";
       toggleBtn.className = "show-json-btn";
       toggleBtn.style.cssText = `
         background-color: #3498db; 
@@ -951,12 +976,10 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         window.open(monacoUrl, '_blank');
       });
 
-      // Add buttons and content to card
-      const btnContainer = document.createElement("div");
-      btnContainer.style.display = "flex";
+      // Add JSON vs B and Monaco diff buttons to btnContainer
       btnContainer.appendChild(toggleBtn);
       btnContainer.appendChild(monacoDiffBtn);
-
+      
       card.appendChild(btnContainer);
       card.appendChild(sideBySideDiv);
     }
@@ -1109,7 +1132,8 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         }
       });
 
-      card.appendChild(btn);
+      // Add Show Differences button to the existing button container
+      btnContainer.appendChild(btn);
       card.appendChild(diffContainer);
     }
 
