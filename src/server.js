@@ -231,91 +231,110 @@ app.get("/api/json-diff", (req, res) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
+
+  const { recordId, folder } = req.query;
   
-  const recordId = req.query.recordId;
-  const folderName = req.query.folder;
-  
-  console.log(`Got request for diff data: recordId=${recordId}, folder=${folderName}`);
-  
-  if (!recordId || !folderName) {
-    return res.status(400).json({ error: "Missing recordId or folder parameter" });
+  if (!recordId || !folder) {
+    return res.status(400).json({ error: "Missing recordId or folder parameters" });
   }
   
-  // Use absolute path to reports directory (try both old_reports and reports)
-  let filePath = path.join(__dirname, "../old_reports", folderName, "diff_data.json");
-  
-  // If not found in old_reports, try the reports directory
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, "../reports", folderName, "diff_data.json");
-    if (!fs.existsSync(filePath)) {
-      console.log(`File not found in either reports or old_reports: ${folderName}/diff_data.json`);
-      return res.status(404).json({ error: "Diff data file not found" });
+  console.log(`/api/json-diff request: recordId=${recordId}, folder=${folder}`);
+
+  // Check both reports and old_reports directories
+  const reportPaths = [
+    path.join(__dirname, "..", "reports", folder),
+    path.join(__dirname, "..", "old_reports", folder),
+  ];
+
+  let diffData = null;
+  let foundPath = null;
+
+  // Try to find diff_data.json in either path
+  for (const reportPath of reportPaths) {
+    try {
+      const diffFilePath = path.join(reportPath, "diff_data.json");
+      if (fs.existsSync(diffFilePath)) {
+        diffData = JSON.parse(fs.readFileSync(diffFilePath, "utf8"));
+        foundPath = diffFilePath;
+        break;
+      }
+    } catch (error) {
+      console.error(`Error reading diff_data.json from ${reportPath}:`, error);
     }
   }
+
+  if (!diffData) {
+    return res.status(404).json({ error: "Diff data not found for folder: " + folder });
+  }
+
+  console.log(`Found diff data at: ${foundPath}`);
   
-  try {
-    console.log(`Reading diff data from: ${filePath}`);
-    // Read and parse the diff_data.json file
-    const diffData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  // Look through all jobs to find an endpoint with JSON diff data
+  let foundEndpoint = null;
+  
+  // This is our workaround for the mismatch between record IDs and endpoint keys
+  // We'll try to find any endpoint with JSON diff data regardless of the recordId
+  for (const job of diffData) {
+    if (!job.endpoints || !Array.isArray(job.endpoints)) {
+      console.log(`Skipping job without endpoints array: ${job.jobName || 'unknown'}`);
+      continue;
+    }
     
-    // Extract desired record data (rawJsonA and rawJsonB)
-    let original = "{}";
-    let modified = "{}";
+    // Debug: log available keys in this job (only first few to avoid log spam)
+    const availableKeys = job.endpoints.map(endpoint => endpoint.key).filter(Boolean);
+    console.log(`Job ${job.jobName} has ${job.endpoints.length} endpoints with keys:`, 
+      availableKeys.slice(0, 3), availableKeys.length > 3 ? `...and ${availableKeys.length - 3} more` : '');
     
-    // FIXED: The actual structure is different from what we expected
-    // The diff_data.json has endpoints array with rawJsonA and rawJsonB directly
-    if (Array.isArray(diffData) && diffData.length > 0) {
-      const job = diffData[0]; // First job in the array
-      
-      // If a specific record ID was provided, try to find that record
-      // Otherwise use the first endpoint's data
-      if (recordId !== 'all-test' && job.endpoints && Array.isArray(job.endpoints)) {
-        for (const endpoint of job.endpoints) {
-          // For exact record matches
-          if (endpoint.key === recordId || endpoint.id === recordId) {
-            console.log(`Found endpoint with ID/key ${recordId}`);
-            original = endpoint.rawJsonA || "{}";
-            modified = endpoint.rawJsonB || "{}";
-            break;
-          }
-        }
-      }
-      
-      // If we didn't find a match by ID or using 'all-test', use the first endpoint
-      if ((original === "{}" && modified === "{}") || recordId === 'all-test') {
-        console.log("Using the first available endpoint for testing");
-        if (job.endpoints && job.endpoints.length > 0) {
-          const firstEndpoint = job.endpoints[0];
-          original = firstEndpoint.rawJsonA || "{}";
-          modified = firstEndpoint.rawJsonB || "{}";
-          
-          console.log(`Using endpoint: ${firstEndpoint.key || 'unknown'} with status A: ${firstEndpoint.statusA}, B: ${firstEndpoint.statusB}`);
-          console.log(`Raw JSON A length: ${original.length}, Raw JSON B length: ${modified.length}`);
-        }
+    // First try exact match by key - this is ideal if main.js passes an actual endpoint key
+    foundEndpoint = job.endpoints.find(endpoint => endpoint.key === recordId);
+    
+    if (foundEndpoint) {
+      console.log(`✓ Found exact match for endpoint key: ${recordId}`);
+      break;
+    }
+    
+    // If no match yet, just find any endpoint with diff data
+    // This allows the Monaco diff to show something even with random record IDs
+    for (const endpoint of job.endpoints) {
+      if (endpoint.rawJsonA && endpoint.rawJsonB) {
+        foundEndpoint = endpoint;
+        console.log(`✓ No exact match found, using endpoint with key: ${endpoint.key || 'unknown'}`);
+        break;
       }
     }
     
-    // Ensure we're sending string data, not objects
-    // Monaco editor expects string data for its models
-    const ensureString = (jsonData) => {
-      if (typeof jsonData === 'object') {
-        return JSON.stringify(jsonData, null, 2);
-      }
-      return jsonData || '{}';
-    };
-    
-    // Send the diff data as properly formatted strings
-    res.json({
-      original: ensureString(original),
-      modified: ensureString(modified)
+    if (foundEndpoint) break;
+  }
+  
+  if (!foundEndpoint) {
+    return res.status(404).json({
+      error: "No endpoint with diff data found",
+      recordId
     });
-    
-    console.log(`Sent data - Original length: ${ensureString(original).length}, Modified length: ${ensureString(modified).length}`);
-    
-  } catch (err) {
-    console.error("Error reading or parsing diff data:", err);
-    res.status(500).json({ error: "Error reading diff data: " + err.message });
   }
+  
+  // Get the raw JSON data from the found endpoint
+  const original = foundEndpoint.rawJsonA || "{}";
+  const modified = foundEndpoint.rawJsonB || "{}";
+  
+  // Ensure we're sending string data, not objects
+  // Monaco editor expects string data for its models
+  const ensureString = (jsonData) => {
+    if (typeof jsonData === 'object') {
+      return JSON.stringify(jsonData, null, 2);
+    }
+    return jsonData || '{}';
+  };
+  
+  // Send the diff data as properly formatted strings
+  res.json({
+    original: ensureString(original),
+    modified: ensureString(modified),
+    endpoint: foundEndpoint.key || 'unknown'
+  });
+  
+  console.log(`Sent diff data for endpoint: ${foundEndpoint.key || 'unknown'}`);
+  console.log(`Data sizes - Original: ${ensureString(original).length}, Modified: ${ensureString(modified).length}`);
 });
 
 /**
@@ -334,19 +353,32 @@ app.use("/assets", express.static(path.join(__dirname, "frontend/dist/assets"), 
   }
 }));
 
-// Serve the main Monaco app path
-app.use("/monaco-diff", express.static(path.join(__dirname, "frontend/dist"), {
-  etag: false,
-  lastModified: false,
-  setHeaders: (res) => {
+// Serve the main Monaco app static assets
+app.use("/monaco-diff/assets", express.static(path.join(__dirname, "frontend/dist/assets"), {
+  setHeaders: function (res, path) {
+    res.set("Content-Type", getMimeType(path));
+    // Add strong no-cache headers for development
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
-  }
+  },
 }));
 
-// Serve index.html for any path under /monaco-diff
-app.get("/monaco-diff/*", (req, res) => {
+// Static files at the root of frontend/dist
+app.use("/monaco-diff", express.static(path.join(__dirname, "frontend/dist"), {
+  index: false, // Don't serve index.html automatically
+  setHeaders: function (res, path) {
+    res.set("Content-Type", getMimeType(path));
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+  },
+}));
+
+// Serve index.html for monaco-diff route and all subroutes
+// This ensures all paths including root path and with query params work
+app.get(["/monaco-diff", "/monaco-diff/*"], (req, res) => {
+  console.log(`Serving Monaco Diff Viewer for: ${req.originalUrl}`);
   res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
 });
 

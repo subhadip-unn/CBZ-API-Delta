@@ -912,12 +912,31 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       
       // Handle click to open Monaco diff viewer
       monacoDiffBtn.addEventListener("click", () => {
-        // Generate record ID if not available
-        const recordId = rec.id || `${rec.endpoint}-${Date.now()}`;
+        // Print out the full record object to debug
+        console.log('Full record object:', rec);
+        
+        // The endpoint key should be directly available on the record from the diff_data.json
+        let recordId;
+        
+        // Find the right ID to use - check all possible properties
+        if (rec.key) {
+          recordId = rec.key; // This should be the endpoint key like 'matches-live-v1__VS__matches-live-v2'
+          console.log('Using endpoint key as recordId:', recordId);
+        } else if (rec.endpoint) {
+          recordId = rec.endpoint;
+          console.log('Using endpoint property as recordId:', recordId);
+        } else {
+          // Fallback
+          recordId = rec.id || 'all-test';
+          console.log('Fallback to record ID or all-test:', recordId);
+        }
+        
+        console.log('Opening Monaco diff with recordId:', recordId);
         
         // Open Monaco diff viewer in a new tab/window with explicit port (8080)
         const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
         const monacoUrl = `${baseUrl}/monaco-diff?recordId=${encodeURIComponent(recordId)}&folder=${encodeURIComponent(window.REPORT_FOLDER)}`;
+        console.log('Opening URL:', monacoUrl);
         window.open(monacoUrl, '_blank');
       });
 
