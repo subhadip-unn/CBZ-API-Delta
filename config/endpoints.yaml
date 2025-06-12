@@ -1,5 +1,95 @@
 # config/endpoints.yaml
 
+# VENUE ENDPOINTS - PRODUCTION
+# iOS (i)
+- key: "venue-details-v1"
+  platform: "i"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-v1"
+  platform: "i"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Android (a)
+- key: "venue-details-v1"
+  platform: "a"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-v1"
+  platform: "a"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Mobile Web (m)
+- key: "venue-details-v1"
+  platform: "m"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-v1"
+  platform: "m"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Desktop Web (w)
+- key: "venue-details-v1"
+  platform: "w"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-v1"
+  platform: "w"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# VENUE ENDPOINTS - STAGING
+# iOS (i)
+- key: "venue-details-stg"
+  platform: "i"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-stg"
+  platform: "i"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Android (a)
+- key: "venue-details-stg"
+  platform: "a"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-stg"
+  platform: "a"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Mobile Web (m)
+- key: "venue-details-stg"
+  platform: "m"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-stg"
+  platform: "m"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
+# Desktop Web (w)
+- key: "venue-details-stg"
+  platform: "w"
+  path: "venues/v1/{venueId}"
+  idCategory: "venueId"
+
+- key: "venue-matches-stg"
+  platform: "w"
+  path: "venues/v1/{venueId}/matches"
+  idCategory: "venueId"
+
 # PRODUCTION (v1) endpoints for all platforms
 - key: "matches-live-v1"
   platform: "i"

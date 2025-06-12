@@ -1,20 +1,16 @@
 # config/comparison.yaml
 
 jobs:
-  - name: "Quick Test: iOS Stg v2 vs Prod v1"
+  - name: "Quick Test: iOS Stg vs Prod"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     quickMode: true
     endpointPairs:
-      - endpointA: "matches-live-v1"
-        endpointB: "matches-live-v2"
-      - endpointA: "matches-recent-v1"
-        endpointB: "matches-recent-v2"
-      - endpointA: "matches-upcoming-v1"
-        endpointB: "matches-upcoming-v2"
-      - endpointA: "matches-current-v1"
-        endpointB: "matches-current-v2"
+      - endpointA: "venue-details-v1"
+        endpointB: "venue-details-stg"
+      - endpointA: "venue-matches-v1"
+        endpointB: "venue-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -22,19 +18,15 @@ jobs:
       retries: 1
       delayMs: 1000
 
-  - name: "iOS: Stg v2 vs Prod v1 (explicit pairs)"
+  - name: "iOS: Stg vs Prod (explicit pairs)"
     platform: "i"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     endpointPairs:
-      - endpointA: "matches-live-v1"
-        endpointB: "matches-live-v2"
-      - endpointA: "matches-recent-v1"
-        endpointB: "matches-recent-v2"
-      - endpointA: "matches-upcoming-v1"
-        endpointB: "matches-upcoming-v2"
-      - endpointA: "matches-current-v1"
-        endpointB: "matches-current-v2"
+      - endpointA: "venue-details-v1"
+        endpointB: "venue-details-stg"
+      - endpointA: "venue-matches-v1"
+        endpointB: "venue-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -42,19 +34,15 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Android: Stg v2 vs Prod v1 (explicit pairs)"
+  - name: "Android: Stg vs Prod (explicit pairs)"
     platform: "a"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     endpointPairs:
-      - endpointA: "matches-live-v1"
-        endpointB: "matches-live-v2"
-      - endpointA: "matches-recent-v1"
-        endpointB: "matches-recent-v2"
-      - endpointA: "matches-upcoming-v1"
-        endpointB: "matches-upcoming-v2"
-      - endpointA: "matches-current-v1"
-        endpointB: "matches-current-v2"
+      - endpointA: "venue-details-v1"
+        endpointB: "venue-details-stg"
+      - endpointA: "venue-matches-v1"
+        endpointB: "venue-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -62,19 +50,15 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Mobile-Web: Stg v2 vs Prod v1 (explicit pairs)"
+  - name: "Mobile-Web: Stg vs Prod (explicit pairs)"
     platform: "m"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     endpointPairs:
-      - endpointA: "matches-live-v1"
-        endpointB: "matches-live-v2"
-      - endpointA: "matches-recent-v1"
-        endpointB: "matches-recent-v2"
-      - endpointA: "matches-upcoming-v1"
-        endpointB: "matches-upcoming-v2"
-      - endpointA: "matches-current-v1"
-        endpointB: "matches-current-v2"
+      - endpointA: "venue-details-v1"
+        endpointB: "venue-details-stg"
+      - endpointA: "venue-matches-v1"
+        endpointB: "venue-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
@@ -82,19 +66,15 @@ jobs:
       retries: 2
       delayMs: 2000
 
-  - name: "Desktop-Web: Stg v2 vs Prod v1 (explicit pairs)"
+  - name: "Desktop-Web: Stg vs Prod (explicit pairs)"
     platform: "w"
     baseA: "https://apiserver.cricbuzz.com"
     baseB: "http://api.cricbuzz.stg"
     endpointPairs:
-      - endpointA: "matches-live-v1"
-        endpointB: "matches-live-v2"
-      - endpointA: "matches-recent-v1"
-        endpointB: "matches-recent-v2"
-      - endpointA: "matches-upcoming-v1"
-        endpointB: "matches-upcoming-v2"
-      - endpointA: "matches-current-v1"
-        endpointB: "matches-current-v2"
+      - endpointA: "venue-details-v1"
+        endpointB: "venue-details-stg"
+      - endpointA: "venue-matches-v1"
+        endpointB: "venue-matches-stg"
     ignorePaths:
       - "meta.timestamp"
       - "data.generatedId"
