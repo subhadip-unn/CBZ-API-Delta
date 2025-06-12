@@ -1,0 +1,87 @@
+/* Monaco Diff Viewer Styles */
+
+.monaco-diff-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.monaco-header {
+  background-color: #333;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.monaco-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.monaco-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.monaco-diff-editor {
+  flex-grow: 1;
+  height: calc(100vh - 70px);
+  border: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.btn {
+  cursor: pointer;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #45a049;
+}
+
+.btn-secondary {
+  background-color: #555;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #444;
+}
+
+.monaco-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  z-index: 100;
+}
+
+.monaco-error {
+  margin: 10px;
+  padding: 15px;
+  background-color: #ffecec;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  border-radius: 4px;
+}

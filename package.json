@@ -4,6 +4,7 @@
   "description": "CBZ API comparison tool with multi-geo support",
   "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
     "compare": "node src/reportGenerator.js",
     "serve": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"

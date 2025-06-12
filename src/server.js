@@ -6,7 +6,7 @@ const path = require("path");
 const auth = require('basic-auth');
 
 const app = express();
-const PORT = 3000;
+const PORT = 8080; // Temporarily changed to avoid port conflicts
 
 // Disable ETag generation to prevent 304 Not Modified responses
 app.disable("etag");
@@ -221,8 +221,138 @@ app.get("/diff_data.json", (req, res) => {
   }
 });
 
+/**
+ * API endpoint for Monaco JSON diff viewer
+ * GET /api/json-diff?recordId=<recordId>&folder=<folderName>
+ * Returns the raw JSON before and after for diffing
+ */
+app.get("/api/json-diff", (req, res) => {
+  // Disable caching for API responses
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  
+  const recordId = req.query.recordId;
+  const folderName = req.query.folder;
+  
+  console.log(`Got request for diff data: recordId=${recordId}, folder=${folderName}`);
+  
+  if (!recordId || !folderName) {
+    return res.status(400).json({ error: "Missing recordId or folder parameter" });
+  }
+  
+  // Use absolute path to reports directory (try both old_reports and reports)
+  let filePath = path.join(__dirname, "../old_reports", folderName, "diff_data.json");
+  
+  // If not found in old_reports, try the reports directory
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, "../reports", folderName, "diff_data.json");
+    if (!fs.existsSync(filePath)) {
+      console.log(`File not found in either reports or old_reports: ${folderName}/diff_data.json`);
+      return res.status(404).json({ error: "Diff data file not found" });
+    }
+  }
+  
+  try {
+    console.log(`Reading diff data from: ${filePath}`);
+    // Read and parse the diff_data.json file
+    const diffData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    
+    // Extract desired record data (rawJsonA and rawJsonB)
+    let original = "{}";
+    let modified = "{}";
+    
+    // FIXED: The actual structure is different from what we expected
+    // The diff_data.json has endpoints array with rawJsonA and rawJsonB directly
+    if (Array.isArray(diffData) && diffData.length > 0) {
+      const job = diffData[0]; // First job in the array
+      
+      // If a specific record ID was provided, try to find that record
+      // Otherwise use the first endpoint's data
+      if (recordId !== 'all-test' && job.endpoints && Array.isArray(job.endpoints)) {
+        for (const endpoint of job.endpoints) {
+          // For exact record matches
+          if (endpoint.key === recordId || endpoint.id === recordId) {
+            console.log(`Found endpoint with ID/key ${recordId}`);
+            original = endpoint.rawJsonA || "{}";
+            modified = endpoint.rawJsonB || "{}";
+            break;
+          }
+        }
+      }
+      
+      // If we didn't find a match by ID or using 'all-test', use the first endpoint
+      if ((original === "{}" && modified === "{}") || recordId === 'all-test') {
+        console.log("Using the first available endpoint for testing");
+        if (job.endpoints && job.endpoints.length > 0) {
+          const firstEndpoint = job.endpoints[0];
+          original = firstEndpoint.rawJsonA || "{}";
+          modified = firstEndpoint.rawJsonB || "{}";
+          
+          console.log(`Using endpoint: ${firstEndpoint.key || 'unknown'} with status A: ${firstEndpoint.statusA}, B: ${firstEndpoint.statusB}`);
+          console.log(`Raw JSON A length: ${original.length}, Raw JSON B length: ${modified.length}`);
+        }
+      }
+    }
+    
+    // Ensure we're sending string data, not objects
+    // Monaco editor expects string data for its models
+    const ensureString = (jsonData) => {
+      if (typeof jsonData === 'object') {
+        return JSON.stringify(jsonData, null, 2);
+      }
+      return jsonData || '{}';
+    };
+    
+    // Send the diff data as properly formatted strings
+    res.json({
+      original: ensureString(original),
+      modified: ensureString(modified)
+    });
+    
+    console.log(`Sent data - Original length: ${ensureString(original).length}, Modified length: ${ensureString(modified).length}`);
+    
+  } catch (err) {
+    console.error("Error reading or parsing diff data:", err);
+    res.status(500).json({ error: "Error reading diff data: " + err.message });
+  }
+});
+
+/**
+ * Serve the React Monaco Diff Viewer app and its assets
+ */
+// Directly serve the assets folder with proper MIME types
+app.use("/assets", express.static(path.join(__dirname, "frontend/dist/assets"), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    // Set the correct MIME types for common file extensions
+    res.type(path.extname(res.req.path));
+  }
+}));
+
+// Serve the main Monaco app path
+app.use("/monaco-diff", express.static(path.join(__dirname, "frontend/dist"), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+  }
+}));
+
+// Serve index.html for any path under /monaco-diff
+app.get("/monaco-diff/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`CBZ API Delta UI running at http://0.0.0.0:${PORT}`);
   console.log(`VPN access: http://172.16.253.6:${PORT}/reports`);
   console.log(`Browse http://localhost:${PORT}/reports to select a report`);
+  console.log(`Monaco Diff Viewer available at http://localhost:${PORT}/monaco-diff`);
 });

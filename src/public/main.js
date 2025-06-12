@@ -890,7 +890,44 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         }
       });
 
-      card.appendChild(toggleBtn);
+      // 6) Monaco Diff Viewer Button
+      const monacoDiffBtn = document.createElement("button");
+      monacoDiffBtn.className = "monaco-diff-btn";
+      monacoDiffBtn.style.cssText = `
+        background-color: #9b59b6; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        font-weight: 600; 
+        margin: 10px 0 10px 10px;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color 0.2s;
+      `;
+      monacoDiffBtn.innerHTML = '<span style="margin-right:8px;">🔄</span> Monaco Diff Viewer';
+      monacoDiffBtn.onmouseover = () => monacoDiffBtn.style.backgroundColor = '#8e44ad';
+      monacoDiffBtn.onmouseout = () => monacoDiffBtn.style.backgroundColor = '#9b59b6';
+      
+      // Handle click to open Monaco diff viewer
+      monacoDiffBtn.addEventListener("click", () => {
+        // Generate record ID if not available
+        const recordId = rec.id || `${rec.endpoint}-${Date.now()}`;
+        
+        // Open Monaco diff viewer in a new tab/window with explicit port (8080)
+        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
+        const monacoUrl = `${baseUrl}/monaco-diff?recordId=${encodeURIComponent(recordId)}&folder=${encodeURIComponent(window.REPORT_FOLDER)}`;
+        window.open(monacoUrl, '_blank');
+      });
+
+      // Add buttons and content to card
+      const btnContainer = document.createElement("div");
+      btnContainer.style.display = "flex";
+      btnContainer.appendChild(toggleBtn);
+      btnContainer.appendChild(monacoDiffBtn);
+
+      card.appendChild(btnContainer);
       card.appendChild(sideBySideDiv);
     }
 
