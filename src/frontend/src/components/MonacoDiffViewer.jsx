@@ -120,13 +120,13 @@ const MonacoDiffViewer = ({ recordId, folder, cbLoc }) => {
   return (
     <div className="monaco-container">
       <div className="monaco-header">
-        <h1>Monaco JSON Diff Viewer</h1>
+        <h1>DeltaΔ Diff Viewer</h1>
         <div className="endpoint-info">
           <div className="info-row"><strong>Endpoint:</strong> {endpointInfo.key}</div>
           <div className="info-row region-info"><strong>Region:</strong> {endpointInfo.region}</div>
         </div>
         <div className="monaco-actions">
-          <a href="/reports" className="btn-back">← Back to Reports</a>
+          <a href="/reports" className="btn-back">←Reports</a>
           <button className="btn-refresh" onClick={() => window.location.reload()}>Refresh</button>
         </div>
       </div>
