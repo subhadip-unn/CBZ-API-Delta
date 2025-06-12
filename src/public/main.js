@@ -931,11 +931,17 @@ ${JSON.stringify(job.headersUsed, null, 2)}
           console.log('Fallback to record ID or all-test:', recordId);
         }
         
-        console.log('Opening Monaco diff with recordId:', recordId);
+        // Get region (cbLoc) from record object
+        const cbLoc = rec.cbLoc || rec.params?.cbLoc;
+        console.log('Using cbLoc (region):', cbLoc);
+        
+        console.log('Opening Monaco diff with recordId:', recordId, 'and cbLoc:', cbLoc);
         
         // Open Monaco diff viewer in a new tab/window with explicit port (8080)
         const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
-        const monacoUrl = `${baseUrl}/monaco-diff?recordId=${encodeURIComponent(recordId)}&folder=${encodeURIComponent(window.REPORT_FOLDER)}`;
+        // Add cbLoc parameter to the URL if available
+        const cbLocParam = cbLoc ? `&cbLoc=${encodeURIComponent(cbLoc)}` : '';
+        const monacoUrl = `${baseUrl}/monaco-diff?recordId=${encodeURIComponent(recordId)}&folder=${encodeURIComponent(window.REPORT_FOLDER)}${cbLocParam}`;
         console.log('Opening URL:', monacoUrl);
         window.open(monacoUrl, '_blank');
       });

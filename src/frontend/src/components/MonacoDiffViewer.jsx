@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { DiffEditor } from '@monaco-editor/react';
 
-const MonacoDiffViewer = ({ recordId, folder }) => {
+const MonacoDiffViewer = ({ recordId, folder, cbLoc }) => {
+  // Track which endpoint key and region we're viewing
+  const [endpointInfo, setEndpointInfo] = useState({
+    key: recordId,
+    region: cbLoc || 'Unknown Region'
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [jsonData, setJsonData] = useState({
@@ -20,11 +25,13 @@ const MonacoDiffViewer = ({ recordId, folder }) => {
           throw new Error('Missing recordId or folder parameter');
         }
 
-        console.log(`Fetching diff data for recordId=${recordId}, folder=${folder}`);
+        console.log(`Fetching diff data for recordId=${recordId}, folder=${folder}, cbLoc=${cbLoc}`);
         
         // Use full URL to ensure we're hitting the right endpoint
         const baseUrl = window.location.origin;
-        const apiUrl = `${baseUrl}/api/json-diff?recordId=${recordId}&folder=${folder}`;
+        // Add cbLoc to API URL if available
+        const cbLocParam = cbLoc ? `&cbLoc=${encodeURIComponent(cbLoc)}` : '';
+        const apiUrl = `${baseUrl}/api/json-diff?recordId=${recordId}&folder=${folder}${cbLocParam}`;
         console.log(`API URL: ${apiUrl}`);
         
         // Fetch data from our API endpoint
@@ -111,21 +118,18 @@ const MonacoDiffViewer = ({ recordId, folder }) => {
   };
 
   return (
-    <div className="monaco-diff-container">
-      <header className="monaco-header">
+    <div className="monaco-container">
+      <div className="monaco-header">
         <h1>Monaco JSON Diff Viewer</h1>
-        <div className="monaco-controls">
-          <button className="btn btn-primary" onClick={handleBackClick}>
-            ← Back to Reports
-          </button>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => window.location.reload()}
-          >
-            Refresh
-          </button>
+        <div className="endpoint-info">
+          <span><strong>Endpoint:</strong> {endpointInfo.key}</span>
+          {cbLoc && <span><strong>Region:</strong> {cbLoc}</span>}
         </div>
-      </header>
+        <div className="monaco-actions">
+          <a href="/reports" className="btn-back">← Back to Reports</a>
+          <button className="btn-refresh" onClick={() => window.location.reload()}>Refresh</button>
+        </div>
+      </div>
 
       {error && (
         <div className="monaco-error">

@@ -232,13 +232,13 @@ app.get("/api/json-diff", (req, res) => {
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
 
-  const { recordId, folder } = req.query;
+  const { recordId, folder, cbLoc } = req.query;
   
   if (!recordId || !folder) {
     return res.status(400).json({ error: "Missing recordId or folder parameters" });
   }
   
-  console.log(`/api/json-diff request: recordId=${recordId}, folder=${folder}`);
+  console.log(`/api/json-diff request: recordId=${recordId}, folder=${folder}, cbLoc=${cbLoc || 'not specified'}`);
 
   // Check both reports and old_reports directories
   const reportPaths = [
@@ -271,39 +271,130 @@ app.get("/api/json-diff", (req, res) => {
   
   // Look through all jobs to find an endpoint with JSON diff data
   let foundEndpoint = null;
+  let exactMatch = false;
   
-  // This is our workaround for the mismatch between record IDs and endpoint keys
-  // We'll try to find any endpoint with JSON diff data regardless of the recordId
+  // Store all available endpoint keys for debugging
+  const allAvailableEndpoints = [];
+  const allRegions = [];
+  
+  // Debug: Log all available regions in the diff data
+  diffData.forEach(job => {
+    const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
+    if (jobCbLoc && !allRegions.includes(jobCbLoc)) {
+      allRegions.push(jobCbLoc);
+    }
+  });
+  console.log(`Available regions in diff data: ${allRegions.join(', ') || 'none found'}`);
+  
+  // First pass - try to find an exact match by region and endpoint key
   for (const job of diffData) {
     if (!job.endpoints || !Array.isArray(job.endpoints)) {
-      console.log(`Skipping job without endpoints array: ${job.jobName || 'unknown'}`);
       continue;
     }
     
-    // Debug: log available keys in this job (only first few to avoid log spam)
-    const availableKeys = job.endpoints.map(endpoint => endpoint.key).filter(Boolean);
-    console.log(`Job ${job.jobName} has ${job.endpoints.length} endpoints with keys:`, 
-      availableKeys.slice(0, 3), availableKeys.length > 3 ? `...and ${availableKeys.length - 3} more` : '');
+    // Get region (cbLoc) for this job
+    const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
     
-    // First try exact match by key - this is ideal if main.js passes an actual endpoint key
-    foundEndpoint = job.endpoints.find(endpoint => endpoint.key === recordId);
-    
-    if (foundEndpoint) {
-      console.log(`✓ Found exact match for endpoint key: ${recordId}`);
-      break;
+    // Skip this job if cbLoc was specified and doesn't match
+    if (cbLoc && jobCbLoc && jobCbLoc !== cbLoc) {
+      continue;
     }
     
-    // If no match yet, just find any endpoint with diff data
-    // This allows the Monaco diff to show something even with random record IDs
-    for (const endpoint of job.endpoints) {
-      if (endpoint.rawJsonA && endpoint.rawJsonB) {
+    // Log the job info
+    console.log(`Checking job: ${job.jobName || 'unnamed'}, region: ${jobCbLoc || 'unknown'}`);
+    
+    // Log the job name and endpoints count
+    const jobEndpointKeys = job.endpoints
+      .map(endpoint => endpoint.key)
+      .filter(Boolean);
+    
+    jobEndpointKeys.forEach(key => {
+      if (key) {
+        // Add region info to endpoint keys for debugging
+        allAvailableEndpoints.push(`${key} (${jobCbLoc || 'unknown region'})`);
+      }
+    });
+    
+    // Try to find an exact match by endpoint key
+    const endpoint = job.endpoints.find(ep => {
+      return ep.key === recordId && ep.rawJsonA && ep.rawJsonB;
+    });
+    
+    if (endpoint) {
+      foundEndpoint = endpoint;
+      exactMatch = true;
+      console.log(`✓ Found exact match for endpoint key: ${recordId} in job: ${job.jobName}, region: ${jobCbLoc || 'unknown'}`);
+      break;
+    }
+  }
+  
+  // If no exact match found, try partial match
+  if (!foundEndpoint) {
+    console.log(`× No exact match found for key: ${recordId}${cbLoc ? ` in region ${cbLoc}` : ''}`);
+    console.log(`Available endpoint keys:`, allAvailableEndpoints.slice(0, 10), 
+      allAvailableEndpoints.length > 10 ? `...and ${allAvailableEndpoints.length - 10} more` : '');
+    
+    // Try to find partial matches
+    for (const job of diffData) {
+      if (!job.endpoints || !Array.isArray(job.endpoints)) continue;
+      
+      // Get region for this job
+      const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
+      
+      // Skip this job if cbLoc was specified and doesn't match
+      if (cbLoc && jobCbLoc && jobCbLoc !== cbLoc) {
+        continue; // Don't look in jobs from other regions if region was specified
+      }
+      
+      // Look for partial matches (key contains the recordId or vice versa)
+      const endpoint = job.endpoints.find(ep => {
+        const epKey = ep.key || '';
+        return (epKey.includes(recordId) || recordId.includes(epKey)) && 
+               ep.rawJsonA && ep.rawJsonB;
+      });
+      
+      if (endpoint) {
         foundEndpoint = endpoint;
-        console.log(`✓ No exact match found, using endpoint with key: ${endpoint.key || 'unknown'}`);
+        console.log(`✓ Found partial match in region ${jobCbLoc || 'unknown'} - endpoint key: ${endpoint.key} matches recordId: ${recordId}`);
         break;
       }
     }
     
-    if (foundEndpoint) break;
+    // If still no match, fall back to first endpoint with JSON data
+    if (!foundEndpoint) {
+      // First try to find an endpoint in the requested region
+      if (cbLoc) {
+        for (const job of diffData) {
+          if (!job.endpoints || !Array.isArray(job.endpoints)) continue;
+          
+          // Only check jobs matching the requested region
+          const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
+          if (jobCbLoc !== cbLoc) continue;
+          
+          const endpoint = job.endpoints.find(ep => ep.rawJsonA && ep.rawJsonB);
+          if (endpoint) {
+            foundEndpoint = endpoint;
+            console.log(`⚠ No exact/partial match found in region ${cbLoc}, using first endpoint with data in this region: ${endpoint.key || 'unknown'}`);
+            break;
+          }
+        }
+      }
+      
+      // If still no endpoint found, use any endpoint regardless of region
+      if (!foundEndpoint) {
+        for (const job of diffData) {
+          if (!job.endpoints || !Array.isArray(job.endpoints)) continue;
+          
+          const jobCbLoc = job.cbLoc || (job.params && job.params.cbLoc);
+          const endpoint = job.endpoints.find(ep => ep.rawJsonA && ep.rawJsonB);
+          if (endpoint) {
+            foundEndpoint = endpoint;
+            console.log(`⚠ No match found in any region, last resort fallback to endpoint: ${endpoint.key || 'unknown'} in region ${jobCbLoc || 'unknown'}`);
+            break;
+          }
+        }
+      }
+    }
   }
   
   if (!foundEndpoint) {

@@ -4,10 +4,11 @@ import './App.css'
 import './styles/MonacoDiffViewer.css'
 
 function App() {
-  // Get recordId and folder from URL search params
+  // Get recordId, folder and cbLoc from URL search params
   const [params, setParams] = useState({
     recordId: null,
-    folder: null
+    folder: null,
+    cbLoc: null
   });
   
   // Parse URL parameters on component mount
@@ -15,10 +16,14 @@ function App() {
     const searchParams = new URLSearchParams(window.location.search);
     const recordId = searchParams.get('recordId');
     const folder = searchParams.get('folder');
+    const cbLoc = searchParams.get('cbLoc'); // Get region parameter
+    
+    console.log(`App received params: recordId=${recordId}, folder=${folder}, cbLoc=${cbLoc}`);
     
     setParams({
       recordId,
-      folder
+      folder,
+      cbLoc
     });
   }, []);
 
@@ -27,7 +32,8 @@ function App() {
       {params.recordId && params.folder ? (
         <MonacoDiffViewer 
           recordId={params.recordId} 
-          folder={params.folder} 
+          folder={params.folder}
+          cbLoc={params.cbLoc} // Pass region to MonacoDiffViewer 
         />
       ) : (
         <div className="monaco-error-container">
