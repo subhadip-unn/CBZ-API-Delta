@@ -138,10 +138,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       btn.addEventListener("click", () => showJob(idx));
       tabsDiv.appendChild(btn);
     });
-    document.getElementById("summary").insertAdjacentElement("beforebegin", tabsDiv);
+    
+    // Find summary element or fallback to app element if summary doesn't exist
+    const summaryElement = document.getElementById("summary") || document.getElementById("app");
+    if (summaryElement) {
+      summaryElement.insertAdjacentElement("beforebegin", tabsDiv);
+    } else {
+      // Last resort - append to body
+      document.body.appendChild(tabsDiv);
+    }
 
   // 3) Create container for job sections
-  const jobContainer = document.getElementById("job-container");
+  let jobContainer = document.getElementById("job-container");
+  
+  // Create job-container if it doesn't exist
+  if (!jobContainer) {
+    jobContainer = document.createElement("div");
+    jobContainer.id = "job-container";
+    const appElement = document.getElementById("app");
+    if (appElement) {
+      appElement.appendChild(jobContainer);
+    } else {
+      document.body.appendChild(jobContainer);
+    }
+  }
+  
   allJobs.forEach((job, idx) => {
     const section = document.createElement("div");
     section.id = `job-${idx}`;

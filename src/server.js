@@ -6,7 +6,7 @@ const path = require("path");
 const auth = require('basic-auth');
 
 const app = express();
-const PORT = 8080; // Temporarily changed to avoid port conflicts
+const PORT = 8081; // Temporarily changed to avoid port conflicts
 
 // Disable ETag generation to prevent 304 Not Modified responses
 app.disable("etag");
@@ -44,24 +44,105 @@ function getAllReportFolders() {
 }
 
 /**
+ * getAllArchivedFolders()
+ *   Returns an array of folder names under /old_reports that are directories.
+ *   Sorts in reverse chronological order (newest first).
+ */
+function getAllArchivedFolders() {
+  if (!fs.existsSync("old_reports")) return [];
+  return fs.readdirSync("old_reports")
+    .filter(name => fs.statSync(path.join("old_reports", name)).isDirectory())
+    .sort()
+    .reverse(); // Reverse to get newest first
+}
+
+/**
  * serveReportList(req, res)
  *   Renders a simple HTML page listing all available report folders as links.
  */
 app.get("/reports", (req, res) => {
   const folders = getAllReportFolders();
-  if (folders.length === 0) {
-    return res.send("<h2>No reports found. Run `npm run compare` first.</h2>");
-  }
+  const archivedFolders = getAllArchivedFolders();
+  
   let html = `
-    <h2>Available Reports</h2>
-    <ul>
+    <html>
+    <head>
+      <title>CBZ API Delta Reports</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #333; margin-top: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 8px 0; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .archived-link { margin-top: 20px; display: block; }
+      </style>
+    </head>
+    <body>
   `;
-  folders.forEach(folder => {
-    html += `<li><a href="/view/${folder}">${folder}</a></li>`;
-  });
+  
+  if (folders.length === 0) {
+    html += `<h2>No latest reports found. Run 'npm run compare' first.</h2>`;
+  } else {
+    html += `<h2>Latest Reports</h2><ul>`;
+    folders.forEach(folder => {
+      html += `<li><a href="/view/${folder}">${folder}</a></li>`;
+    });
+    html += `</ul>`;
+  }
+  
+  if (archivedFolders.length > 0) {
+    html += `<h2>Archived Reports</h2>`;
+    
+    // Group folders by year
+    const foldersByYear = {};
+    archivedFolders.forEach(folder => {
+      const dateMatch = folder.match(/^(\d{4})-/);
+      if (dateMatch) {
+        const year = dateMatch[1];
+        if (!foldersByYear[year]) {
+          foldersByYear[year] = [];
+        }
+        foldersByYear[year].push(folder);
+      } else {
+        // For folders that don't match the expected format
+        if (!foldersByYear['Other']) {
+          foldersByYear['Other'] = [];
+        }
+        foldersByYear['Other'].push(folder);
+      }
+    });
+
+    // Display reports grouped by year, with newest first in each group
+    // Get the years and sort them in descending order
+    const sortedYears = Object.keys(foldersByYear).sort().reverse();
+    
+    sortedYears.forEach(year => {
+      html += `<h3>${year}</h3><ul>`;
+      
+      // Folders in each year are already sorted newest first by getAllArchivedFolders
+      foldersByYear[year].forEach(folder => {
+        // Format the display date
+        let displayDate = folder;
+        const dateMatch = folder.match(/^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})/);
+        if (dateMatch) {
+          const [_, year, month, day, hour, minute] = dateMatch;
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          displayDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year} at ${hour}:${minute}`;
+        }
+        
+        html += `<li><a href="/archived-view/${folder}">${displayDate}</a></li>`;
+      });
+      
+      html += `</ul>`;
+    });
+  }
+  
   html += `
-    </ul>
+    </body>
+    </html>
   `;
+  
   res.send(html);
 });
 
@@ -70,6 +151,137 @@ app.get("/reports", (req, res) => {
  */
 app.get("/", (req, res) => {
   res.redirect("/reports");
+});
+
+/**
+ * viewArchivedReport(req, res)
+ *   For /archived-view/:folderName, serves the HTML shell for archived reports
+ */
+app.get("/archived-view/:folderName", (req, res) => {
+  const folder = req.params.folderName;
+  const fullPath = path.join("old_reports", folder);
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).send("Archived report not found");
+  }
+  const timestamp = Date.now();
+  // Use the current version of main.js and main.css from /public instead of the archived versions
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>CBZ API Delta Report (Archived): ${folder}</title>
+        <link rel="stylesheet" href="/public/main.css?v=${timestamp}" />
+        <!-- Add jsondiffpatch CSS styles needed for formatter -->
+        <style>
+          /* jsondiffpatch formatter styles */
+          .jsondiffpatch-delta {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 0 0 0 12px;
+            display: inline-block;
+          }
+          .jsondiffpatch-delta pre {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            display: inline-block;
+          }
+          ul.jsondiffpatch-delta {
+            list-style-type: none;
+            padding: 0 0 0 20px;
+            margin: 0;
+          }
+          .jsondiffpatch-delta ul {
+            list-style-type: none;
+            padding: 0 0 0 20px;
+            margin: 0;
+          }
+          .jsondiffpatch-added .jsondiffpatch-property-name,
+          .jsondiffpatch-added .jsondiffpatch-value pre,
+          .jsondiffpatch-modified .jsondiffpatch-right-value pre,
+          .jsondiffpatch-textdiff-added {
+            background: #bbffbb;
+          }
+          .jsondiffpatch-deleted .jsondiffpatch-property-name,
+          .jsondiffpatch-deleted pre,
+          .jsondiffpatch-modified .jsondiffpatch-left-value pre,
+          .jsondiffpatch-textdiff-deleted {
+            background: #ffbbbb;
+            text-decoration: line-through;
+          }
+          .jsondiffpatch-unchanged,
+          .jsondiffpatch-movedestination {
+            color: gray;
+          }
+          .jsondiffpatch-unchanged,
+          .jsondiffpatch-movedestination > .jsondiffpatch-value {
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            overflow-y: hidden;
+          }
+          .jsondiffpatch-unchanged-showing .jsondiffpatch-unchanged,
+          .jsondiffpatch-unchanged-showing .jsondiffpatch-movedestination > .jsondiffpatch-value {
+            max-height: 100px;
+          }
+          .jsondiffpatch-unchanged-hidden .jsondiffpatch-unchanged,
+          .jsondiffpatch-unchanged-hidden .jsondiffpatch-movedestination > .jsondiffpatch-value {
+            max-height: 0;
+          }
+          .jsondiffpatch-arrow {
+            display: inline-block;
+            position: relative;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            vertical-align: middle;
+            margin: 2px;
+          }
+          .jsondiffpatch-arrow-down { border-top: 5px solid black; }
+          .jsondiffpatch-arrow-right { border-left: 5px solid black; }
+          /* Add any additional styles needed for the archived view */
+          .archived-banner {
+            background-color: #ffeb3b; 
+            padding: 10px; 
+            text-align: center; 
+            margin-bottom: 10px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="archived-banner">
+          <strong>ARCHIVED REPORT</strong> - This is a historical snapshot from ${folder}
+          <a href="/reports" style="margin-left: 20px;">Back to Reports List</a>
+        </div>
+        <div id="summary"></div>
+        <div id="job-container"></div>
+        <!-- Pre-define window.REPORT_FOLDER for the static JS -->
+        <script>
+          window.REPORT_FOLDER = "${folder}";
+          window.IS_ARCHIVED = true;
+          // Add a function to modify XMLHttpRequest URLs to include archived=true
+          (function() {
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url) {
+              if (url && (url === '/diff_data.json' || url.startsWith('/diff_data.json?'))) {
+                url = url.includes('?') ? url + '&archived=true' : url + '?archived=true';
+              }
+              originalOpen.apply(this, [method, url]);
+            };
+          })();
+        </script>
+        <!-- Load jsondiffpatch before main.js -->
+        <script src="/public/jsondiffpatch.umd.js?v=${timestamp}"></script>
+        <!-- Load the latest JS that renders the report -->
+        <script src="/public/main.js?v=${timestamp}"></script>
+      </body>
+    </html>
+  `;
+  res.send(html);
 });
 
 /**
@@ -178,8 +390,8 @@ app.get("/view/:folderName", (req, res) => {
 });
 
 /**
- * Serve static files under /static/:folderName/*
- *   Maps to reports/:folderName/static/*
+ * Static file serving for current reports
+ *   For /static/:folderName/*, serves static assets from /reports/:folderName/
  *   With no-cache headers to prevent stale assets
  */
 app.use("/static/:folderName", (req, res, next) => {
@@ -187,16 +399,66 @@ app.use("/static/:folderName", (req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.set("Pragma", "no-cache");
   res.set("Expires", "0");
+
+  const folderName = req.params.folderName;
+  const filePath = req.path.replace(/^\/+/, ""); //remove leading slash
+  const fullPath = path.join("reports", folderName, filePath);
+  
+  // First check if file exists at standard path
+  if (fs.existsSync(fullPath)) {
+    return res.sendFile(path.resolve(fullPath), { maxAge: 0 });
+  }
+  
+  // Check if it's a request for static/* subdirectory
+  const staticPath = path.join("reports", folderName, "static", filePath);
+  if (fs.existsSync(staticPath)) {
+    return res.sendFile(path.resolve(staticPath), { maxAge: 0 });
+  }
+  
+  // Not found
+  next();
+});
+
+/**
+ * Archived Static file serving 
+ *   For /archived-static/:folderName/*, serves static assets from /old_reports/:folderName/
+ */
+app.use("/archived-static/:folderName", (req, res, next) => {
+  // Disable caching for all static assets
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
   
   const folderName = req.params.folderName;
   const filePath = req.path.replace(/^\/+/, ""); // remove leading slash
-  const fullPath = path.join("reports", folderName, "static", filePath);
+  const fullPath = path.join("old_reports", folderName, filePath);
+  
+  // First check if file exists at standard path
   if (fs.existsSync(fullPath)) {
-    res.sendFile(path.resolve(fullPath), { maxAge: 0 });
-  } else {
-    res.status(404).send("Not found");
+    return res.sendFile(path.resolve(fullPath), { maxAge: 0 });
   }
+  
+  // Check if it's a request for static/* subdirectory
+  const staticPath = path.join("old_reports", folderName, "static", filePath);
+  if (fs.existsSync(staticPath)) {
+    return res.sendFile(path.resolve(staticPath), { maxAge: 0 });
+  }
+  
+  // Not found
+  next();
 });
+
+/**
+ * Public static file serving
+ *   For /public/* serves the latest static assets from src/public directory
+ */
+app.use("/public", (req, res, next) => {
+  // Disable caching for all static assets
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+}, express.static(path.join(__dirname, "public")));
 
 /**
  * Serve diff_data.json for a given folderName
@@ -213,11 +475,24 @@ app.get("/diff_data.json", (req, res) => {
   if (!folder) {
     return res.status(400).send("Missing folder parameter");
   }
-  const filePath = path.join("reports", folder, "diff_data.json");
+
+  // Check if this is an archived folder request (from old_reports)
+  const isArchived = req.query.archived === 'true';
+  const baseDir = isArchived ? "old_reports" : "reports";
+  const filePath = path.join(baseDir, folder, "diff_data.json");
+
+  // If archived parameter not provided, try both locations
+  if (!isArchived && !fs.existsSync(filePath)) {
+    const archivedPath = path.join("old_reports", folder, "diff_data.json");
+    if (fs.existsSync(archivedPath)) {
+      return res.sendFile(path.resolve(archivedPath), { maxAge: 0 });
+    }
+  }
+  
   if (fs.existsSync(filePath)) {
     res.sendFile(path.resolve(filePath), { maxAge: 0 });
   } else {
-    res.status(404).send("Diff data not found");
+    res.status(404).send(`Diff data not found in ${baseDir}/${folder}`);
   }
 });
 
@@ -252,22 +527,39 @@ app.get("/api/json-diff", (req, res) => {
   
   console.log(`/api/json-diff request: recordId=${originalRecordId} (parsed to: ${recordId}), folder=${folder}, cbLoc=${cbLoc || 'not specified'}`);
 
-  // Check both reports and old_reports directories
-  const reportPaths = [
-    path.join(__dirname, "..", "reports", folder),
-    path.join(__dirname, "..", "old_reports", folder),
-  ];
+  // Check if this is an archived report
+  const isArchived = req.query.archived === 'true';
+  
+  // Determine which directories to check based on archived parameter
+  let reportPaths = [];
+  if (isArchived) {
+    // If archived=true, only check old_reports
+    reportPaths = [path.join(__dirname, "..", "old_reports", folder)];
+    console.log(`Looking only in archived reports for folder: ${folder}`);
+  } else if (req.query.archived === 'false') {
+    // If archived=false, only check reports
+    reportPaths = [path.join(__dirname, "..", "reports", folder)];
+    console.log(`Looking only in current reports for folder: ${folder}`);
+  } else {
+    // If archived parameter not provided, check both
+    reportPaths = [
+      path.join(__dirname, "..", "reports", folder),
+      path.join(__dirname, "..", "old_reports", folder),
+    ];
+    console.log(`Looking in both current and archived reports for folder: ${folder}`);
+  }
 
   let diffData = null;
   let foundPath = null;
 
-  // Try to find diff_data.json in either path
+  // Try to find diff_data.json in the specified path(s)
   for (const reportPath of reportPaths) {
     try {
       const diffFilePath = path.join(reportPath, "diff_data.json");
       if (fs.existsSync(diffFilePath)) {
         diffData = JSON.parse(fs.readFileSync(diffFilePath, "utf8"));
         foundPath = diffFilePath;
+        console.log(`Found diff_data.json at: ${diffFilePath}`);
         break;
       }
     } catch (error) {
