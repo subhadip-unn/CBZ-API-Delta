@@ -988,8 +988,9 @@ ${JSON.stringify(job.headersUsed, null, 2)}
         
         console.log('Opening Monaco diff with recordId:', compositeKey, 'and cbLoc:', cbLoc);
         
-        // Open Monaco diff viewer in a new tab/window with explicit port (8080)
-        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
+        // Open Monaco diff viewer in a new tab/window using same port as current page
+        const currentPort = window.location.port || '8081'; // Default to 8081 if port is empty
+        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':' + currentPort;
         // Add cbLoc parameter to the URL if available
         const cbLocParam = cbLoc ? `&cbLoc=${encodeURIComponent(cbLoc)}` : '';
         const monacoUrl = `${baseUrl}/monaco-diff?recordId=${encodeURIComponent(compositeKey)}&folder=${encodeURIComponent(window.REPORT_FOLDER)}${cbLocParam}`;
