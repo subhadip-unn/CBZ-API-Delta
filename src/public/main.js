@@ -999,6 +999,7 @@ ${JSON.stringify(job.headersUsed, null, 2)}
       });
 
       // Add JSON vs B and Monaco diff buttons to btnContainer
+      btnContainer.className = "btn-group";
       btnContainer.appendChild(toggleBtn);
       btnContainer.appendChild(monacoDiffBtn);
       

@@ -71,6 +71,18 @@ h1, h2 {
   margin-top: 0.5rem;
   font-size: 0.9rem;
 }
+/* Button Group for Action Buttons */
+.btn-group {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.btn-group button {
+  margin: 0 !important;
+}
+
 /* Endpoint Cards */
 .endpoint-card {
   background: #fff;
